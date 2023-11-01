@@ -6,7 +6,6 @@ import os
 from scipy.signal import resample, butter, filtfilt
 from module1.preprocessing import *
 
-
 def path_name(type_of_movement):
     if type_of_movement == "left_right_fist":
         return "fist_movement.npy"
@@ -15,38 +14,16 @@ def path_name(type_of_movement):
     else:
         raise ValueError(f"Invalid type_of_movement : {type_of_movement}.Expected 'fist' or 'feet'.")
 
-def select_electrode(number_of_ch=int):
+def select_electrode(number_of_ch=64):
     all_ch = ['Fc5', 'Fc3', 'Fc1', 'Fcz', 'Fc2', 'Fc4', 'Fc6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6','Cp5', 'Cp3', 'Cp1',
             'Cpz', 'Cp2', 'Cp4', 'Cp6', 'Fp1', 'Fpz', 'Fp2', 'Af7', 'Af3', 'Afz', 'Af4','Af8', 'F7', 'F5', 'F3', 'F1','Fz',
             'F2', 'F4','F6', 'F8', 'Ft7', 'Ft8', 'T7', 'T8','T9', 'T10', 'Tp7', 'Tp8', 'P7', 'P5', 'P3', 'P1','Pz','P2',
             'P4','P6', 'P8', 'Po7','Po3', 'Poz', 'Po4', 'Po8', 'O1', 'Oz', 'O2', 'Iz']
     extracted_ch = []
-    if number_of_ch == 38:
-        ch_idx = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 21, 22, 23, 24, 26, 28, 29, 31, 33, 35, 37, 40, 41, 42, 43, 46, 48, 50, 52, 54, 55, 57, 59, 60, 61, 62, 63]
-        for i in ch_idx:
-            extracted_ch.append(all_ch[i])
-
-    elif number_of_ch == 19:
-        ch_idx = [8, 10, 12, 21, 23, 29, 31, 33, 35, 37, 40, 41, 46, 48, 50, 52, 54, 60, 62]
-        for i in ch_idx:
-            extracted_ch.append(all_ch[i])
-
-    elif number_of_ch == 8:
-        ch_idx = [8, 10, 12, 25, 27, 48, 52, 57]
-        for i in ch_idx:
-            extracted_ch.append(all_ch[i])
-
-    elif number_of_ch == 64:
-        ch_idx = np.arange(0, 64, 1).tolist()
-        for i in ch_idx:
-            extracted_ch.append(all_ch[i])
-
-    elif number_of_ch == 3:
-        ch_idx = [8, 10, 12]
-        for i in ch_idx:
-            extracted_ch.append(all_ch[i])
+    ch_idx = np.arange(0, number_of_ch).tolist()
+    for i in ch_idx:
+        extracted_ch.append(all_ch[i])
     return ch_idx, extracted_ch
-
 
 def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=int):
     data_list = []
@@ -166,8 +143,6 @@ n_class = 4 # 何クラス分類にするかは後で設定するからここで
 type_of_movement_1 = "left_right_fist"
 type_of_movement_2 = "fists_feet"
 
-number_of_ch = 64 # 対象とするチャンネル数(64, 38, 19, 8, 3)
-
 current_dir = Path.cwd() # 現在のディレクトリを取得
 eeg_data_dir = current_dir / "ML_data" / ext_sec / baseline
 
@@ -181,7 +156,7 @@ subject_dirs = []
 for i in range(110):
     subject_dirs.extend(eeg_data_dir.glob(f"S{i+1:03}"))
 
-ch_idx, extracted_ch = select_electrode(number_of_ch)
+ch_idx, extracted_ch = select_electrode()
 
 file_name_1 = path_name(type_of_movement_1)
 file_name_2 = path_name(type_of_movement_2)
@@ -200,7 +175,7 @@ for subject_dir in subject_dirs:
             epoch_data = np.stack(data["epoch_data"])
             labels = data["label"]
 
-            X, y = distribute_labels(ch_idx, epoch_data, labels, n_class, number_of_ch=number_of_ch)
+            X, y = distribute_labels(ch_idx, epoch_data, labels, n_class, number_of_ch=64)
     
             for i, epoch_data in enumerate(X):
                 # アンチエイリアシングフィルタを適用
@@ -226,6 +201,6 @@ for subject_dir in subject_dirs:
             save_dir = current_dir / "Envelope_data" / ext_sec / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "BPF_data":
             save_dir = current_dir / "BPF_data" / ext_sec / f"ds_{ds}" / subject_id
-        # os.makedirs(save_dir, exist_ok=True)
-        # output_file = save_dir / f"{preprocessing_dir}.npy"
-        # np.save(output_file, all_data_dict)
+        os.makedirs(save_dir, exist_ok=True)
+        output_file = save_dir / f"{preprocessing_dir}.npy"
+        np.save(output_file, all_data_dict)
