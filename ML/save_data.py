@@ -144,16 +144,16 @@ type_of_movement_1 = "left_right_fist"
 type_of_movement_2 = "fists_feet"
 
 current_dir = Path.cwd() # 現在のディレクトリを取得
-eeg_data_dir = current_dir / "ML_data" / ext_sec / baseline
+eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / ext_sec
 
-preprocessing_type= "b" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type= "e" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})
 decompose_level = 5 # 分解レベル
 
 # データpathの取得
 subject_dirs = []
-for i in range(110):
+for i in range(104):
     subject_dirs.extend(eeg_data_dir.glob(f"S{i+1:03}"))
 
 ch_idx, extracted_ch = select_electrode()
@@ -174,9 +174,7 @@ for subject_dir in subject_dirs:
         for data, movement_type in zip([data_1, data_2], [type_of_movement_1, type_of_movement_2]):
             epoch_data = np.stack(data["epoch_data"])
             labels = data["label"]
-
             X, y = distribute_labels(ch_idx, epoch_data, labels, n_class, number_of_ch=64)
-    
             for i, epoch_data in enumerate(X):
                 # アンチエイリアシングフィルタを適用
                 cutoff = samplerate // (2 * ds)  # カットオフ周波数の設定
@@ -196,11 +194,11 @@ for subject_dir in subject_dirs:
             all_data_dict[movement_type] = {"epoch_data": all_data, "labels": y}
 
         if preprocessing_dir == "DWT_data":
-            save_dir = current_dir / "DWT_data" / f"decomposition_level{decompose_level}" /  dir_name / ext_sec / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / f"decomposition_level{decompose_level}" /  dir_name / ext_sec / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "Envelope_data":
-            save_dir = current_dir / "Envelope_data" / ext_sec / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / ext_sec / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "BPF_data":
-            save_dir = current_dir / "BPF_data" / ext_sec / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / ext_sec / f"ds_{ds}" / subject_id
         os.makedirs(save_dir, exist_ok=True)
         output_file = save_dir / f"{preprocessing_dir}.npy"
         np.save(output_file, all_data_dict)

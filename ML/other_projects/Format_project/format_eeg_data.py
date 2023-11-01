@@ -1,7 +1,3 @@
-# 被験者毎に(45,64,960)の構造化配列を作成する(※(試行数,チャンネル数,サンプル数))
-# 作成した配列はML_dataに被験者ごとに保存
-# 右手運動と左手運動は混在してるが、運動と運動想起は分けてある
-
 import os
 import mne
 import numpy as np
@@ -13,19 +9,22 @@ ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
 current_path = Path.cwd()
-base_path = current_path / "EEG_dataset" / "files"
-tmp_save_path = current_path / "ML_data" / ext_sec / baseline
-subject_dirs = [f"S{i:03d}" for i in range(1, 110)]
+base_path = current_path / "ML" /"EEG_dataset" / "files"
+tmp_save_path = current_path / "ML" / "ref_data" / "ML_data" / ext_sec
+
+# S088, S089, S092, S100, S104を除外
+subject_dirs = [f"S{i:03d}" for i in range(1, 110) if i not in [88, 89, 92, 100, 104]]
+
 left_right_fist = [3, 4, 7, 8, 11, 12]
 both_fists_feet = [5, 6, 9, 10, 13, 14]
 
-type_of_movement = "fist"
+type_of_movement = "both_fists_feet"
 
 samplefreq = 160 # サンプリング周波数
 cut_out_time = 3 # 切り出し秒数
 
 file_paths = []
-for subject_dir in subject_dirs:
+for idx, subject_dir in enumerate(subject_dirs):  # インデックスを使用して保存先のディレクトリ名を連番に調整
     subject_path = base_path / subject_dir
     if type_of_movement == "fist":
         patterns = [subject_path / f'{subject_dir}R{i:02d}.edf' for i in left_right_fist]
@@ -33,6 +32,7 @@ for subject_dir in subject_dirs:
         patterns = [subject_path / f'{subject_dir}R{i:02d}.edf' for i in both_fists_feet]
     file_paths.append(patterns)
 
+num = 0
 for file_path in file_paths:
     subject_epoch_data = []
     subject_labels = []
@@ -62,7 +62,7 @@ for file_path in file_paths:
 
         epoch_data = epochs.get_data()
         epoch_data = epoch_data[:, :, :samplefreq*cut_out_time] # 時間ステップを理論値に変換
-        # サンプル数が合わない被験者を除外
+        # サンプル数が合わない被験者を除外(除外しているが運動が変わった時のダブルチェックの意味で)
         if epoch_data.shape[0] != 15:
             pass
         else:
@@ -84,8 +84,10 @@ for file_path in file_paths:
         structured_data = np.empty(len(subject_epoch_data), dtype=dt)
         structured_data["epoch_data"] = subject_epoch_data
         structured_data["label"] = subject_labels
-        save_path = tmp_save_path / file.parent.name
+
+        save_path = tmp_save_path / f"S{num+1:03d}"  # 保存先のディレクトリ名を連番に調整
         os.makedirs(save_path,exist_ok=True)
         np.save(f"{save_path}/{type_of_movement}_movement.npy",structured_data)
+        num += 1
     else:
         pass
