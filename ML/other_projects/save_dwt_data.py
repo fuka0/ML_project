@@ -78,7 +78,7 @@ def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=
 
     return combined_data, combined_labels
 
-def execute_dwt(sig, level, t, ch_name, wavelet, plot = True):
+def execute_dwt(sig, level, t, ch_name, wavelet, plot = False):
     coeffs = pywt.wavedec(sig, wavelet, level=level)
     nyq_freq = len(coeffs[level])
     sub_band_freq = {}
@@ -187,7 +187,7 @@ number_of_ch = 64 # 対象とするチャンネル数(64, 38, 19, 8, 3)
 wave_type = wave_list[2] # mu rhythm is 0, beta rhythm is 1, mu~beta rhythm is 2
 
 current_dir = Path.cwd() # 現在のディレクトリを取得
-eeg_data_dir = current_dir / "ML_data" / ext_sec / baseline
+eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / ext_sec
 
 preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
 
@@ -225,14 +225,14 @@ for subject_dir in subject_dirs:
                 # アンチエイリアシングフィルタを適用
                 cutoff = samplerate // (2 * ds)  # カットオフ周波数の設定
                 filtered_epoch_data = apply_antialiasing_filter(epoch_data, cutoff, samplerate)
-    
+
                 epoch_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1)
                 details_per_epoch = []
                 for ch in range(epoch_data.shape[0]):
                     # 分解レベル
                     level = decompose_level
                     # DWTの結果を取得
-                    coeffs = execute_dwt(epoch_data[ch, :], level, t, extracted_ch[ch], "db4", plot = True)
+                    coeffs = execute_dwt(epoch_data[ch, :], level, t, extracted_ch[ch], "db4", plot = False)
                     dir_name = generate_string(decompose_level, d_num)
                     details = []
                     # レベル3,4の詳細係数を結合
@@ -240,7 +240,6 @@ for subject_dir in subject_dirs:
                         details.extend(coeffs[n])
                     details_per_epoch.append(details) # 各サンプルに対してチャンネル数分要素ができる
                 all_details.append(details_per_epoch) # バッチ数分要素ができる
-
             all_details = np.array(all_details).transpose(0,2,1) # 形状を(試行数,サンプル点数,チャンネル数)に
 
             # 運動状態ごとのデータとラベルを辞書に追加

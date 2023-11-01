@@ -141,7 +141,7 @@ samplerate = 160 # サンプリング周波数
 wave_list = ["mu", "beta", "mu_beta"]
 downsampling_levels = [2, 3] # ダウンサンプリングレベル
 
-extraction_section = False # 切り出し区間が安静時を含まないならTrue,含むならFalse
+extraction_section = True # 切り出し区間が安静時を含まないならTrue,含むならFalse
 baseline_correction = True # ベースライン補正の有無
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
@@ -153,7 +153,7 @@ type_of_movement_2 = "fists_feet"
 number_of_ch = 64 # 対象とするチャンネル数(64, 38, 19, 8, 3)
 
 current_dir = Path.cwd() # 現在のディレクトリを取得
-eeg_data_dir = current_dir / "ML_data" / ext_sec / baseline
+eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / ext_sec
 
 output_folder = Path(f"Envelope_data/{ext_sec}")
 
@@ -201,6 +201,7 @@ for subject_dir in subject_dirs:
                 filterd_data = filter(epoch_data, ds, samplerate) # BPF
                 envelope_data = extract_envelope(filterd_data, samplerate, 1)
                 all_envelope.append(envelope_data)
+            print(len(all_envelope))
             all_envelope = np.array(all_envelope).transpose(0,2,1) # 形状を(試行数,サンプル点数,チャンネル数)に
 
             # 運動状態ごとのデータとラベルを辞書に追加

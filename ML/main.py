@@ -67,11 +67,11 @@ for number_of_ch in number_of_chs:
                     df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1"], columns=columns)
 
                 if preprocessing_dir == "DWT_data":
-                    data_paths = list((current_dir / preprocessing_dir / f"decomposition_level{decompose_level}" / details_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
+                    data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"decomposition_level{decompose_level}" / details_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
                 elif preprocessing_dir == "Envelope_data":
-                    data_paths = list((current_dir / preprocessing_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
+                    data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
                 elif preprocessing_dir == "BPF_data":
-                    data_paths = list((current_dir / preprocessing_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
+                    data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
 
                 for data_path in data_paths:
                     if data_path.parent.name == target_subject:
@@ -99,7 +99,7 @@ for number_of_ch in number_of_chs:
                 conf_matrices = []
                 # recall, precision, F-valueを格納するためのリスト
                 recalls, precisions, f_values = [], [], []
-                
+
                 # Split the dataset into training and testing sets for each fold
                 for train, test in sss.split(X, y):
                     X_train, X_test = X[train], X[test]
