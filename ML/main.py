@@ -34,7 +34,7 @@ n_class = 2 # 何クラス分類か(左手と右手なら2, 両手も含むな�
 number_of_chs = [64, 28] # 使用するチャンネル数(64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # 運動タイプを定義
 
-extraction_section = False # 切り出し区間が安静時を含まないならTrue,含むならFalse
+extraction_section = True # 切り出し区間が安静時を含まないならTrue,含むならFalse
 baseline_correction = True # ベースライン補正の有無
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
@@ -124,13 +124,13 @@ for number_of_ch in number_of_chs:
                     model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
                     # plot_model(model, to_file="global_model.png", show_shapes=True)
                     if preprocessing_dir == "DWT_data":
-                        log_dir = current_dir / "logs" / preprocessing_dir.split("_")[0] / f"decomposition_level{decompose_level}" / details_dir / ext_sec / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
-                        model_dir = Path("model_container")/preprocessing_dir.split('_')[0]/f"decomposition_level{decompose_level}" / details_dir /ext_sec/f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class"
+                        log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"decomposition_level{decompose_level}" / details_dir / ext_sec / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+                        model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0]/f"decomposition_level{decompose_level}" / details_dir /ext_sec/f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class"
                         os.makedirs(log_dir, exist_ok=True)
                         os.makedirs(model_dir, exist_ok=True)
                     elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
-                        log_dir = current_dir / "logs" / preprocessing_dir.split("_")[0] / ext_sec / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
-                        model_dir = Path("model_container")/preprocessing_dir.split('_')[0] / ext_sec/f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class"
+                        log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / ext_sec / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+                        model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / ext_sec/f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class"
                         os.makedirs(log_dir, exist_ok=True)
                         os.makedirs(model_dir, exist_ok=True)
 
