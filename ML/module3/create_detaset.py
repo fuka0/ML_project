@@ -22,7 +22,7 @@ def select_electrode(number_of_ch=int):
         ch_idx = [8, 10, 12, 21, 23, 29, 31, 33, 35, 37, 40, 41, 46, 48, 50, 52, 54, 60, 62]
         for i in ch_idx:
             extracted_ch.append(all_ch[i])
-    
+
     elif number_of_ch == 6:
         ch_idx = [9, 11, 8, 12, 7, 13]
         for i in ch_idx:
@@ -37,7 +37,7 @@ def select_electrode(number_of_ch=int):
         ch_idx = [2, 4, 1, 5, 0, 6, 9, 11, 8, 12, 7, 13, 16, 18, 15, 19, 14, 20]
         for i in ch_idx:
             extracted_ch.append(all_ch[i])
-    
+
     elif number_of_ch == 28:
         ch_idx = [2, 4, 1, 5, 0, 6, 9, 11, 8, 12, 7, 13, 16, 18, 15, 19, 14, 20, 10, 3, 17, 32, 34, 31, 35, 30, 36, 33]
         for i in ch_idx:
@@ -54,7 +54,6 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
         if n_class == 2:
             data = data_dict[movement_types[0]]["epoch_data"]
             label = data_dict[movement_types[0]]["labels"]
-
             reshaped_data = data.reshape(data.shape[0], -1)
             normalized_data = scaler.fit_transform(reshaped_data) # 標準化
             normalized_data = normalized_data.reshape(data.shape) # 元の形状に戻す
@@ -70,7 +69,6 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
 
                 data_list.append(data_per_label)
                 label_list.append(labels_per_label)
-
         else:
             for movement_type in movement_types:
                 data = data_dict[movement_type]["epoch_data"]

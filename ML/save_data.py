@@ -98,7 +98,7 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF_data"
     return preprocessing_dir
 
-def excute_dwt(epoch_data, decompose_level, d_num):
+def execute_dwt(epoch_data, decompose_level, d_num):
     details_per_epoch = []
     all_details = []
     for ch in range(epoch_data.shape[0]):
@@ -115,14 +115,14 @@ def excute_dwt(epoch_data, decompose_level, d_num):
     all_details.append(details_per_epoch) # バッチ数分要素ができる
     return all_details, dir_name
 
-def excute_envelope(epoch_data, ds, samplerate=160):
+def execute_envelope(epoch_data, ds, samplerate=160):
     all_envelope = []
     filterd_data = filter(epoch_data, ds, samplerate) # BPF
     envelope_data = extract_envelope(filterd_data, samplerate, 1)
     all_envelope.append(envelope_data)
     return all_envelope
 
-def excute_bpf(epoch_data, ds):
+def execute_bpf(epoch_data, ds):
     all_filtered_data = []
     filtered_data = filter(epoch_data, ds, samplerate) # BPF
     all_filtered_data.append(filtered_data)  # バンドパスフィルタリングしたデータをリストに追加
@@ -162,6 +162,7 @@ file_name_1 = path_name(type_of_movement_1)
 file_name_2 = path_name(type_of_movement_2)
 
 for subject_dir in subject_dirs:
+    all_data_list = []
     subject_id = subject_dir.name # 被験者名
 
     # pathを結合してデータを読み込む
@@ -181,17 +182,19 @@ for subject_dir in subject_dirs:
                 filtered_epoch_data = apply_antialiasing_filter(epoch_data, cutoff, samplerate)
                 epoch_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1) # ダウンサンプリング
                 t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
-                
+
                 if preprocessing_dir == "DWT_data":
-                    all_data, dir_name = excute_dwt(epoch_data, decompose_level, d_num)
+                    all_data, dir_name = execute_dwt(epoch_data, decompose_level, d_num)
                 elif preprocessing_dir == "Envelope_data":
-                    all_data = excute_envelope(epoch_data, ds)
+                    all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
-                    all_data = excute_bpf(epoch_data, ds)
-            all_data = np.array(all_data).transpose(0,2,1) # 形状を(試行数,サンプル点数,チャンネル数)に
+                    all_data = execute_bpf(epoch_data, ds)
+                all_data_list.extend(all_data)
+            all_preprocessing_data = np.array(all_data_list).transpose(0,2,1) # 形状を(試行数,サンプル点数,チャンネル数)に
+            all_data_list = []
 
             # 運動状態ごとのデータとラベルを辞書に追加
-            all_data_dict[movement_type] = {"epoch_data": all_data, "labels": y}
+            all_data_dict[movement_type] = {"epoch_data": all_preprocessing_data, "labels": y}
 
         if preprocessing_dir == "DWT_data":
             save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / f"decomposition_level{decompose_level}" /  dir_name / ext_sec / f"ds_{ds}" / subject_id
