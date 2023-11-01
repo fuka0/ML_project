@@ -18,7 +18,7 @@ subject_dirs = [f"S{i:03d}" for i in range(1, 110) if i not in [88, 89, 92, 100,
 left_right_fist = [3, 4, 7, 8, 11, 12]
 both_fists_feet = [5, 6, 9, 10, 13, 14]
 
-type_of_movement = "both_fists_feet"
+type_of_movement = "both_fists_feet" # fist or both_fists_feet
 
 samplefreq = 160 # サンプリング周波数
 cut_out_time = 3 # 切り出し秒数
