@@ -1,5 +1,5 @@
-#Project name
+# Project name
 MI classification by 1D-CNN
 
-#Environment
+# Environment
 You can create environment with anaconda virtual env.
