@@ -2,6 +2,6 @@ ML/ref_data/
 ML/logs/
 ML/model_container/
 ML/result/
-ML/__pycache__/
-ML/*.pyc
+__pycache__/
+*.pyc
 
