@@ -44,6 +44,9 @@ ds = 2 # ダウンサンプリングの設定
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル
 
+reduce_data = True # データ削減を有効にするか
+num_samples = 70  # 選択するサンプル数
+
 for number_of_ch in number_of_chs:
     ch_idx, extracted_ch = select_electrode(number_of_ch)
     current_dir = Path.cwd()
@@ -146,10 +149,19 @@ for number_of_ch in number_of_chs:
             X_sstl, y_sstl = load_data([target_subject_data_path], movement_types, ch_idx, n_class, number_of_ch)
             # ラベルをカテゴリカルに変換
             y_sstl = to_categorical(y_sstl, num_classes=n_class)
-            print(y_sstl.shape)
-            X_sstl = X_sstl[:70,:,:]
-            y_sstl = y_sstl[:70,:]
-            print(X_sstl.shape, y_sstl.shape)
+
+            if reduce_data:
+                # ランダムにデータを選択するためのインデックスを生成
+                indices = np.arange(X_sstl.shape[0])
+                np.random.shuffle(indices)
+                indices = indices[:num_samples]
+
+                # 選択したインデックスを使用してデータを抽出
+                X_sstl = X_sstl[indices]
+                y_sstl = y_sstl[indices]
+            else:
+                pass
+
             sss = StratifiedShuffleSplit(n_splits=5,random_state=22,test_size=0.2)
 
             # 混同行列を格納するためのリスト
@@ -256,10 +268,10 @@ for number_of_ch in number_of_chs:
                     df.loc[split_column[2], new_column] = df_value[column]
             # グループ平均の結果を出力
             if preprocessing_dir == "DWT_data":
-                save_dir = current_dir / "result"/ preprocessing_dir.split("_")[0] / f"decomposition_level{decompose_level}" / details_dir / ext_sec / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+                save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / f"decomposition_level{decompose_level}" / details_dir / ext_sec / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
                 os.makedirs(save_dir, exist_ok=True)
             elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
-                save_dir = current_dir / "result"/ preprocessing_dir.split("_")[0] / ext_sec / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+                save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / ext_sec / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
                 os.makedirs(save_dir, exist_ok=True)
             # テキストファイルとして保存
             with open(save_dir / f"roc_auc_data_{target_subject}.txt", "w") as file:
@@ -268,7 +280,7 @@ for number_of_ch in number_of_chs:
                 for f, t, th in zip(fpr, tpr, thresholds):
                     file.write(f"{f}\t{t}\t{th}\n")
 
-            save_path = save_dir / f"ave_evalute.xlsx"
+            save_path = save_dir / f"ave_evalute_2.xlsx"
             sheet_name = "SS-TL_model_evaluate"
             if target_subject_index == 0:
                 df.to_excel(save_path, sheet_name=sheet_name)
