@@ -45,7 +45,7 @@ d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル
 
 reduce_data = True # データ削減を有効にするか
-num_samples = 70  # 選択するサンプル数
+num_samples = 90  # 選択するサンプル数
 
 for number_of_ch in number_of_chs:
     ch_idx, extracted_ch = select_electrode(number_of_ch)
@@ -103,9 +103,14 @@ for number_of_ch in number_of_chs:
             recalls, precisions, f_values = [], [], []
 
             # Split the dataset into training and testing sets for each fold
-            for train, test in sss.split(X, y):
-                X_train, X_test = X[train], X[test]
-                y_train, y_test = y[train], y[test]
+            for train_idx, test_idx in sss.split(X, y):
+                X_train, X_test = X[train_idx], X[test_idx]
+                y_train, y_test = y[train_idx], y[test_idx]
+                
+                sss_val = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=22)
+                for train_sub_idx, val_idx in sss_val.split(X_train, y_train):
+                    X_train_sub, X_val = X_train[train_sub_idx], X_train[val_idx]
+                    y_train_sub, y_val = y_train[train_sub_idx], y_train[val_idx]
 
                 # ノイズ生成
                 noise = generate_noise(X_train, "gauss")
@@ -139,7 +144,7 @@ for number_of_ch in number_of_chs:
                 callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
                                 ModelCheckpoint(f"{model_dir}/target_{target_subject}_model.keras", save_best_only=True, monitor='val_loss')]
 
-                history = model.fit(X_train_combined, y_train_combined, epochs=200, batch_size=12, validation_data=(X_test, y_test), callbacks=callbacks_list)
+                history = model.fit(X_train_sub, y_train_sub, epochs=200, batch_size=12, validation_data=(X_val, y_val), callbacks=callbacks_list)
         # 転移学習part//////////////////////////////////
             group_results = []
             sstl_train_acc_list = []
@@ -162,14 +167,14 @@ for number_of_ch in number_of_chs:
             else:
                 pass
 
-            sss = StratifiedShuffleSplit(n_splits=5,random_state=22,test_size=0.2)
+            sss_sstl = StratifiedShuffleSplit(n_splits=5,random_state=22,test_size=0.2)
 
             # 混同行列を格納するためのリスト
             conf_matrices = []
             # recall, precision, F-valueを格納するためのリスト
             recalls, precisions, f_values = [], [], []
             # 各分割での訓練と検証
-            for train, test in sss.split(X_sstl, y_sstl):
+            for train, test in sss_sstl.split(X_sstl, y_sstl):
                 # グローバルモデルのロード
                 global_model = load_model(f"{model_dir}/target_{target_subject}_model.keras")
                 for layer in global_model.layers:
@@ -184,12 +189,17 @@ for number_of_ch in number_of_chs:
                 # plot_model(global_model, to_file="SS-TL_model.png", show_shapes=True)
                 X_train_sstl, X_test_sstl = X_sstl[train], X_sstl[test]
                 y_train_sstl, y_test_sstl = y_sstl[train], y_sstl[test]
+                
+                sss_sstl_val = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=22)
+                for train_sub_idx, val_idx in sss_sstl_val.split(X_train_sstl, y_train_sstl):
+                    X_train_sstl_sub, X_sstl_val = X_train_sstl[train_sub_idx], X_train_sstl[val_idx]
+                    y_train_sstl_sub, y_sstl_val = y_train_sstl[train_sub_idx], y_train_sstl[val_idx]
 
                 sstl_callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
                                     CSVLogger(log_dir / f"target_{target_subject}_model.csv",append=True)]
 
                 # SS-TL学習
-                history_sstl = global_model.fit(X_train_sstl, y_train_sstl, epochs=30, batch_size=12, validation_data=(X_test_sstl, y_test_sstl), callbacks=sstl_callbacks_list)
+                history_sstl = global_model.fit(X_train_sstl_sub, y_train_sstl_sub, epochs=30, batch_size=12, validation_data=(X_sstl_val, y_sstl_val), callbacks=sstl_callbacks_list)
                 y_pred = global_model.predict(X_test_sstl)
 
                 y_pred_classes = np.argmax(y_pred, axis=1)
