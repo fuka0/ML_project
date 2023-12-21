@@ -48,12 +48,14 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
     scaler = StandardScaler()
     data_list = []
     label_list = []
+    subject_ids = []
 
     for data_path in data_paths:
         data_dict = np.load(data_path, allow_pickle=True).item()
         if n_class == 2:
             data = data_dict[movement_types[0]]["epoch_data"]
             label = data_dict[movement_types[0]]["labels"]
+            subject_ids.extend([data_path.parent.name] * len(label))
             reshaped_data = data.reshape(data.shape[0], -1)
             normalized_data = scaler.fit_transform(reshaped_data) # 標準化
             normalized_data = normalized_data.reshape(data.shape) # 元の形状に戻す
@@ -91,7 +93,7 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
     # データを結合
         combined_data = np.concatenate(data_list, axis=0)
         combined_labels = np.concatenate(label_list, axis=0)
-    return combined_data, combined_labels
+    return combined_data, combined_labels, subject_ids
 
 def make_columns_subject(n_class, columns_li_binary, columns_li_multi):
     task_str_li = []

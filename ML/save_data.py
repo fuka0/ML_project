@@ -146,7 +146,7 @@ type_of_movement_2 = "fists_feet"
 current_dir = Path.cwd() # 現在のディレクトリを取得
 eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / ext_sec
 
-preprocessing_type= "e" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})
 decompose_level = 5 # 分解レベル
