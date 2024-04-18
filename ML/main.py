@@ -316,6 +316,5 @@ for number_of_ch in number_of_chs:
         plt.close()
         plt.clf()
 
-
 message = "機械学習終了!!"
 line_notify(message)
