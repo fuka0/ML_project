@@ -1,5 +1,3 @@
-# Project name
-MI classification by 1D-CNN
+## EEG MI classification by one-dimensional-convolutional neural network <img src="https://img.shields.io/badge/-Python-F9DC3E.svg?logo=python&style=flat">
 
-# Environment
-You can create environment with anaconda virtual env.
+
