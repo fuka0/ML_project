@@ -304,7 +304,7 @@ for number_of_ch in number_of_chs:
             with pd.ExcelWriter(save_path, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
                 df.to_excel(writer, startrow=0, startcol=target_subject_index*(len(columns)+2), sheet_name=sheet_name)
 
-        # 混同行列のヒートマップをプロット
+        # Plot the heatmap of the confusion matrix
         plt.figure(figsize=(8, 6))
         sns.heatmap(average_conf_matrix, annot=True, cmap="Blues", fmt=".1f",
                     xticklabels=["Left Fist", "Right Fist"],
@@ -315,6 +315,7 @@ for number_of_ch in number_of_chs:
         plt.savefig(f"{save_dir}/{target_subject}_comf_martrix.png")
         plt.close()
         plt.clf()
+
 
 message = "機械学習終了!!"
 line_notify(message)
