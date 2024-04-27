@@ -48,7 +48,7 @@ d_num = 3 # Number of detail to use(D4,D3...)(2 or 3)
 decompose_level = 5 # Number of decomposition level
 
 reduce_data = False # data reduction(True or False)
-num_samples = 90  # Number of samples to use when reducing data
+num_samples = 90  # Number of samples to use when reducing data(default=90)
 
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
