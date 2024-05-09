@@ -76,11 +76,11 @@ for number_of_ch in number_of_chs:
             df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1"], columns=columns)
 
         if preprocessing_dir == "DWT_data":
-            data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"decomposition_level{decompose_level}" / details_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
+            data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
         elif preprocessing_dir == "Envelope_data":
-            data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
+            data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
         elif preprocessing_dir == "BPF_data":
-            data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / ext_sec / f"ds_{ds}" ).glob(f"S*/*.npy"))
+            data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
 
         for data_path in data_paths:
             if data_path.parent.name == target_subject:
@@ -134,19 +134,13 @@ for number_of_ch in number_of_chs:
             model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
             # plot_model(model, to_file="general_model.png", show_shapes=True)
 
-            if preprocessing_dir == "DWT_data":
-                log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"decomposition_level{decompose_level}" / details_dir / ext_sec / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
-                model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0]/f"decomposition_level{decompose_level}" / details_dir /ext_sec/f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
-                os.makedirs(log_dir, exist_ok=True)
-                os.makedirs(model_dir, exist_ok=True)
-            elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
-                log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / ext_sec / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
-                model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / ext_sec/f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
-                os.makedirs(log_dir, exist_ok=True)
-                os.makedirs(model_dir, exist_ok=True)
+            log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
+            model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
+            os.makedirs(log_dir, exist_ok=True)
+            os.makedirs(model_dir, exist_ok=True)
 
             callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
-                            ModelCheckpoint(f"{model_dir}/target_{target_subject}_model.keras", save_best_only=True, monitor='val_loss', mode='min')]
+                            ModelCheckpoint(f"{model_dir}/target_{target_subject}_model_test.keras", save_best_only=True, monitor='val_loss', mode='min')]
 
             model.fit(X_train_combined, y_train_combined, epochs=200, batch_size=30, validation_data=(X_test, y_test), callbacks=callbacks_list)
 
@@ -181,7 +175,7 @@ for number_of_ch in number_of_chs:
                 X_train_sstl, X_val, y_train_sstl, y_val = train_test_split(X_train_sstl, y_train_sstl, test_size=0.15, random_state=22, stratify=y_train_sstl)
 
                 # Load General model
-                general_model = load_model(f"{model_dir}/target_{target_subject}_model.keras")
+                general_model = load_model(f"{model_dir}/target_{target_subject}_model_test.keras")
                 for layer in model.layers:
                     if layer.name == "L4":
                         layer.trainable = True
@@ -193,7 +187,7 @@ for number_of_ch in number_of_chs:
                 # plot_model(general_model, to_file="SS-TL_model.png", show_shapes=True)
 
                 sstl_callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
-                                    CSVLogger(log_dir / f"target_{target_subject}_model.csv",append=True)]
+                                    CSVLogger(log_dir / f"target_{target_subject}_model_test.csv",append=True)]
 
                 # Transfer Learning
                 history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=30, batch_size=12, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
@@ -283,10 +277,10 @@ for number_of_ch in number_of_chs:
 
         # Output average of the evaluation index of each task
         if preprocessing_dir == "DWT_data":
-            save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / f"decomposition_level{decompose_level}" / details_dir / ext_sec / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+            save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
             os.makedirs(save_dir, exist_ok=True)
         elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
-            save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / ext_sec / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+            save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
             os.makedirs(save_dir, exist_ok=True)
         # Save the text file
         with open(save_dir / f"roc_auc_data_{target_subject}.txt", "w") as file:
@@ -296,7 +290,7 @@ for number_of_ch in number_of_chs:
                 file.write(f"{f}\t{t}\t{th}\n")
 
         # Save the xlsx file
-        save_path = save_dir / f"ave_evalute_3.xlsx"
+        save_path = save_dir / f"ave_evalute_test.xlsx"
         sheet_name = "SS-TL_model_evaluate"
         if target_subject_index == 0:
             df.to_excel(save_path, sheet_name=sheet_name)
@@ -312,7 +306,7 @@ for number_of_ch in number_of_chs:
         plt.ylabel('True Label')
         plt.xlabel('Predicted Label')
         plt.title(f'Average Confusion Matrix Heatmap {target_subject}')
-        plt.savefig(f"{save_dir}/{target_subject}_comf_martrix.png")
+        plt.savefig(f"{save_dir}/{target_subject}_comf_martrix_test.png")
         plt.close()
         plt.clf()
 

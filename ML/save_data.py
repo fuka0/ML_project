@@ -82,12 +82,6 @@ def dwt(sig, level, t, ch_name, wavelet, plot = bool):
         pass
     return coeffs
 
-def generate_string(decompose_level, d_num):
-    # Start from decompose_level and get the specified number of details in reverse order
-    details = [f"d{i}" for i in range(decompose_level, decompose_level - d_num, -1)]
-    # Join the strings with "_"
-    return "_".join(details)
-
 def Preprocessing(preprocessing_type):
     if preprocessing_type == "d":
         preprocessing_dir = "DWT_data"
@@ -105,7 +99,6 @@ def execute_dwt(epoch_data, decompose_level, d_num):
         level = decompose_level
         # Get DWT results
         coeffs = dwt(epoch_data[ch, :], level, t, extracted_ch[ch], "db4", plot = False)
-        dir_name = generate_string(level, d_num)
         details = []
         # Combine any specific detail coefficients
         for n in range(1, d_num+1, 1):
@@ -142,9 +135,9 @@ type_of_movement_1 = "left_right_fist"
 type_of_movement_2 = "fists_feet"
 
 current_dir = Path.cwd() # Get the current directory
-eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / ext_sec
+eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data"
 
-preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type= "e" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # Number of details to be obtained (from top down {D4,D3...})
 decompose_level = 5 # Decomposition level
@@ -195,11 +188,11 @@ for subject_dir in subject_dirs:
             all_data_dict[movement_type] = {"epoch_data": all_preprocessing_data, "labels": y}
 
         if preprocessing_dir == "DWT_data":
-            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / f"decomposition_level{decompose_level}" /  dir_name / ext_sec / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "Envelope_data":
-            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / ext_sec / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "BPF_data":
-            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / ext_sec / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / f"ds_{ds}" / subject_id
         os.makedirs(save_dir, exist_ok=True)
         output_file = save_dir / f"{preprocessing_dir}.npy"
         np.save(output_file, all_data_dict)
