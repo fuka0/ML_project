@@ -10,7 +10,7 @@ baseline = "baseline_true" if baseline_correction else "baseline_false"
 
 current_path = Path.cwd()
 base_path = current_path / "ML" /"EEG_dataset" / "files"
-tmp_save_path = current_path / "ML" / "ref_data" / "ML_data" / ext_sec
+tmp_save_path = current_path / "ML" / "ref_data" / "ML_data"
 
 # Exclude S088, S089, S092, S100, S104
 subject_dirs = [f"S{i:03d}" for i in range(1, 110) if i not in [88, 89, 92, 100, 104]]
