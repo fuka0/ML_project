@@ -1,3 +1,4 @@
+# label: 0 - left fist, 1 - right fist, 2 - both fists, 3 - both feet
 import os
 import mne
 import numpy as np
@@ -67,7 +68,7 @@ for file_path in file_paths:
             pass
         else:
             if type_of_movement == "fist":
-                labels = np.array([1 if event[-1] == event_id['right_fist'] else 0 for event in epochs.events])
+                labels = np.array([0 if event[-1] == event_id['left_fist'] else 1 for event in epochs.events])
                 subject_epoch_data.append(epoch_data)
                 subject_labels.append(labels)
             else:

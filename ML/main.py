@@ -31,7 +31,8 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF_data"
     return preprocessing_dir
 # ////////////////////////////////////////////////////////////////////////////////////////
-n_class = 2 # How many class to classify (2 for left and right hands, 3 for both hands, 4 for both feet)
+# left: 4662, right: 4608, fists: 4612, feet: 4643
+n_class = 3 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # static variables
 
@@ -140,7 +141,7 @@ for number_of_ch in number_of_chs:
             os.makedirs(model_dir, exist_ok=True)
 
             callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
-                            ModelCheckpoint(f"{model_dir}/target_{target_subject}_model_test.keras", save_best_only=True, monitor='val_loss', mode='min')]
+                            ModelCheckpoint(f"{model_dir}/target_{target_subject}_model.keras", save_best_only=True, monitor='val_loss', mode='min')]
 
             model.fit(X_train_combined, y_train_combined, epochs=200, batch_size=30, validation_data=(X_test, y_test), callbacks=callbacks_list)
 
@@ -175,7 +176,7 @@ for number_of_ch in number_of_chs:
                 X_train_sstl, X_val, y_train_sstl, y_val = train_test_split(X_train_sstl, y_train_sstl, test_size=0.15, random_state=22, stratify=y_train_sstl)
 
                 # Load General model
-                general_model = load_model(f"{model_dir}/target_{target_subject}_model_test.keras")
+                general_model = load_model(f"{model_dir}/target_{target_subject}_model.keras")
                 for layer in model.layers:
                     if layer.name == "L4":
                         layer.trainable = True
@@ -187,7 +188,7 @@ for number_of_ch in number_of_chs:
                 # plot_model(general_model, to_file="SS-TL_model.png", show_shapes=True)
 
                 sstl_callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
-                                    CSVLogger(log_dir / f"target_{target_subject}_model_test.csv",append=True)]
+                                    CSVLogger(log_dir / f"target_{target_subject}_model.csv",append=True)]
 
                 # Transfer Learning
                 history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=30, batch_size=12, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
@@ -290,7 +291,7 @@ for number_of_ch in number_of_chs:
                 file.write(f"{f}\t{t}\t{th}\n")
 
         # Save the xlsx file
-        save_path = save_dir / f"ave_evalute_test.xlsx"
+        save_path = save_dir / f"ave_evalute.xlsx"
         sheet_name = "SS-TL_model_evaluate"
         if target_subject_index == 0:
             df.to_excel(save_path, sheet_name=sheet_name)
@@ -306,7 +307,7 @@ for number_of_ch in number_of_chs:
         plt.ylabel('True Label')
         plt.xlabel('Predicted Label')
         plt.title(f'Average Confusion Matrix Heatmap {target_subject}')
-        plt.savefig(f"{save_dir}/{target_subject}_comf_martrix_test.png")
+        plt.savefig(f"{save_dir}/{target_subject}_comf_martrix.png")
         plt.close()
         plt.clf()
 

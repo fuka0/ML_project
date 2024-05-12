@@ -75,6 +75,9 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
             for movement_type in movement_types:
                 data = data_dict[movement_type]["epoch_data"]
                 label = data_dict[movement_type]["labels"]
+                if n_class == 3:
+                    label = label[~(label == 3)]
+                subject_ids.extend([data_path.parent.name] * len(label))
                 reshaped_data = data.reshape(data.shape[0], -1)
                 normalized_data = scaler.fit_transform(reshaped_data) # 標準化
                 normalized_data = normalized_data.reshape(data.shape) # 元の形状に戻す
@@ -82,14 +85,17 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
                 # ラベルに基づいてデータを分ける
                 for label_val in range(n_class):
                     indices = np.where(label == label_val)[0]
-                    if number_of_ch == 64:
-                        data_per_label = normalized_data[indices]
-                    else:
-                        data_per_label = normalized_data[indices][:, :, ch_idx]
-                    labels_per_label = label[indices]
+                    if indices.size > 0:
+                        if number_of_ch == 64:
+                            data_per_label = normalized_data[indices]
+                        else:
+                            data_per_label = normalized_data[indices][:, :, ch_idx]
+                        labels_per_label = label[indices]
 
-                    data_list.append(data_per_label)
-                    label_list.append(labels_per_label)
+                        data_list.append(data_per_label)
+                        label_list.append(labels_per_label)
+                    else:
+                        pass
     # データを結合
         combined_data = np.concatenate(data_list, axis=0)
         combined_labels = np.concatenate(label_list, axis=0)
