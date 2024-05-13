@@ -32,7 +32,7 @@ def Preprocessing(preprocessing_type):
     return preprocessing_dir
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
-n_class = 3 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # static variables
 
@@ -42,7 +42,7 @@ baseline_correction = True # baseline_correction(Basically True)
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
-preprocessing_type= "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
+preprocessing_type= "e" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 ds = 2 # down sampling rate(1/2, 1/3)
 
 d_num = 3 # Number of detail to use(D4,D3...)(2 or 3)
