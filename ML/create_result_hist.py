@@ -33,7 +33,7 @@ def add_labels(ax):
                     xytext = (0, 10), textcoords = "offset points",
                     fontproperties=en_font,
                     fontsize=value_label_fontsize)
-
+# ////////////////////////////////////////////////////////////////////////////////////////
 preprocessing_type= "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
@@ -86,12 +86,12 @@ for ch in number_of_chs:
 save_path_64ch = save_dir_dict["64ch"] / "result_hist_64ch.png"
 save_path_28ch = save_dir_dict["28ch"] / "result_hist_28ch.png"
 
-# データフレームを整形
+# data formatting
 df_64ch = df_64ch.T.reset_index().melt(id_vars="index", var_name="処理", value_name="Accuracy")
 df_28ch = df_28ch.T.reset_index().melt(id_vars="index", var_name="処理", value_name="Accuracy")
-bar_width = 0.36  # バーの幅
+bar_width = 0.36  # width of the bar
 
-# プロットの設定
+# plot settings(64ch)
 plt.figure(figsize=(10, 6))
 label_fontsize = 19
 value_label_fontsize = 18
@@ -99,19 +99,19 @@ legend_fontsize = 16
 
 ax_64ch = sns.barplot(x="index", y="Accuracy", hue="処理", data=df_64ch, palette=["blue", "red"], dodge=True)
 
-# 各バーの位置を調整
+# bar position adjustment
 for i, bar in enumerate(ax_64ch.patches):
     bar.set_width(bar_width)
 
 
-# ラベルの追加
+# add labels
 plt.xlabel("Subjects", fontproperties=en_font, fontsize=label_fontsize)
 plt.ylabel("Accuracy [%]", fontproperties=en_font, fontsize=label_fontsize)
 
 leg = plt.legend(loc="upper right", prop={"size": legend_fontsize}, frameon=False)
 
 
-# 凡例のフォントプロパティを設定
+# legend font properties
 for text in leg.get_texts():
     text.set_fontproperties(jp_font)
     text.set_fontsize(legend_fontsize)
@@ -121,10 +121,10 @@ leg.get_title().set_fontsize(legend_fontsize)
 ax = plt.gca()
 add_labels(ax)
 
-# グリッド線の追加
+# add grid lines
 plt.grid(axis="y", color="black")
 
-# X軸のラベルの位置を調整
+# x-axis label position adjustment
 xticks = ax.get_xticks()
 ax.set_xticks(xticks)
 ax.set_xticklabels(df_64ch["index"].unique(), fontproperties=en_font, fontsize=label_fontsize)
@@ -133,32 +133,30 @@ yticks = ax.get_yticks()
 ax.set_yticks(yticks)
 ax.set_yticklabels([f"{int(y)}" for y in yticks], fontproperties=en_font, fontsize=label_fontsize)
 
-# プロットの表示
 plt.tight_layout()
 plt.savefig(save_path_64ch)
 plt.close()
 plt.clf()
-# ///////////////////////////////////////////////////////
+
+
+# /////////////////plot of 28ch results/////////////////
 plt.figure(figsize=(10, 6))
-label_fontsize = 19
-value_label_fontsize = 18
-legend_fontsize = 16
 
 ax_28ch = sns.barplot(x="index", y="Accuracy", hue="処理", data=df_28ch, palette=["blue", "red"], dodge=True)
 
-# 各バーの位置を調整
+# bar position adjustment
 for i, bar in enumerate(ax_28ch.patches):
     bar.set_width(bar_width)
 
 
-# ラベルの追加
+# add labels
 plt.xlabel("Subjects", fontproperties=en_font, fontsize=label_fontsize)
 plt.ylabel("Accuracy [%]", fontproperties=en_font, fontsize=label_fontsize)
 
 leg = plt.legend(loc="upper right", prop={"size": legend_fontsize}, frameon=False)
 
 
-# 凡例のフォントプロパティを設定
+# legend font properties
 for text in leg.get_texts():
     text.set_fontproperties(jp_font)
     text.set_fontsize(legend_fontsize)
@@ -168,10 +166,10 @@ leg.get_title().set_fontsize(legend_fontsize)
 ax = plt.gca()
 add_labels(ax)
 
-# グリッド線の追加
+# add grid lines
 plt.grid(axis="y", color="black")
 
-# X軸のラベルの位置を調整
+# x-axis label position adjustment
 xticks = ax.get_xticks()
 ax.set_xticks(xticks)
 ax.set_xticklabels(df_28ch["index"].unique(), fontproperties=en_font, fontsize=label_fontsize)
@@ -180,7 +178,6 @@ yticks = ax.get_yticks()
 ax.set_yticks(yticks)
 ax.set_yticklabels([f"{int(y)}" for y in yticks], fontproperties=en_font, fontsize=label_fontsize)
 
-# プロットの表示
 plt.tight_layout()
 plt.savefig(save_path_28ch)
 plt.close()
