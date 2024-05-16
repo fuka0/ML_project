@@ -34,7 +34,6 @@ def add_labels(ax):
                     fontproperties=en_font,
                     fontsize=value_label_fontsize)
 # ////////////////////////////////////////////////////////////////////////////////////////
-preprocessing_type= "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 ds = 2 # down sampling rate(1/2, 1/3)
@@ -66,8 +65,7 @@ for result_file_path in result_file_paths:
                         results_64ch[index_name][subject_name] = acc
                     elif ch == "28ch":
                         results_28ch[index_name][subject_name] = acc
-    else:
-        sys.exit(f"ds_{ds} is not found in the path of [{result_file_path}]")
+        continue
 
 df_64ch = create_dataframe_from_results(results_64ch)
 df_28ch = create_dataframe_from_results(results_28ch)
