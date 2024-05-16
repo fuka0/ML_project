@@ -50,7 +50,7 @@ for result_file_path in result_file_paths:
     # print(result_file_path)
     parts = result_file_path.parts # disassemble the path of the result file
     ch = next((part for part in parts if part == "64ch" or part == "28ch"), None) # get the number of channels from the result file path
-    if f"ds_{ds}" in parts:
+    if f"ds_{ds}" in parts and f"{n_class}class" in parts:
         index_name = decide_index(parts) # judge the preprocessing method
 
         result_file = pd.read_excel(result_file_path, index_col=None, header=None) # load the result file
@@ -91,6 +91,7 @@ bar_width = 0.36  # width of the bar
 
 # plot settings(64ch)
 plt.figure(figsize=(10, 6))
+plt.ylim(0, 100)
 label_fontsize = 19
 value_label_fontsize = 18
 legend_fontsize = 16
@@ -139,7 +140,7 @@ plt.clf()
 
 # /////////////////plot of 28ch results/////////////////
 plt.figure(figsize=(10, 6))
-
+plt.ylim(0, 100)
 ax_28ch = sns.barplot(x="index", y="Accuracy", hue="処理", data=df_28ch, palette=["blue", "red"], dodge=True)
 
 # bar position adjustment

@@ -50,7 +50,7 @@ for number_of_ch in number_of_chs:
         learning_curve_dir = current_dir.parent / "Result" / f"{preprocessing_dir}_si" / "Learning Curve"
         os.makedirs(roc_dir, exist_ok=True)
         os.makedirs(learning_curve_dir, exist_ok=True)
-        
+
         # fig, ax1 = plt.subplots(figsize=(10, 8))
         # ax1.grid()
         # for target_path in target_paths:
@@ -68,7 +68,7 @@ for number_of_ch in number_of_chs:
         #             tpr_loaded.append(float(t))
         #             thresholds_loaded.append(float(th))
 
-        #     # fig, ax1 = plt.subplots(figsize=(10, 8))
+        #     fig, ax1 = plt.subplots(figsize=(10, 8))
         #     ax1.plot(fpr_loaded, tpr_loaded, label=f'{subject_name}_ROC curve (AUC = {auc_loaded:.2f})', linewidth=2)
         #     ax1.plot([0, 1], [0, 1], color='gray', linestyle='--')
         #     ax1.set_xlim([0.0, 1.0])
@@ -79,8 +79,8 @@ for number_of_ch in number_of_chs:
         #     ax1.legend(loc="lower right", fontsize=15)
         #     ax1.set_title(f"ROC", fontsize=15)
         # # plt.show()
-        # # plt.savefig(roc_dir/f"{subject_name}_{n_class}class_ds_{ds}.png")
-        # plt.savefig(roc_dir/f"{number_of_ch}ch_{n_class}class_ds_{ds}.png")
+        # plt.savefig(roc_dir/f"{subject_name}_{n_class}class_ds_{ds}.png")
+        # # plt.savefig(roc_dir/f"{number_of_ch}ch_{n_class}class_ds_{ds}.png")
         # plt.clf()
         # plt.close()
 
@@ -106,7 +106,8 @@ for number_of_ch in number_of_chs:
             ax2[1].set_ylabel("Accuracy", fontsize=18)
             ax2[0].grid()
             ax2[1].grid()
-            plt.show()
-            # plt.savefig(learning_curve_dir/f"{subject_name}_{n_class}class_ds_{ds}.png")
-            # plt.clf()
-            # plt.close()
+            # plt.show()
+            print(learning_curve_dir/f"{subject_name}_{n_class}class_ds_{ds}.png")
+            plt.savefig(learning_curve_dir/f"{subject_name}_{n_class}class_ds_{ds}.png")
+            plt.clf()
+            plt.close()
