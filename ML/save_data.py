@@ -105,7 +105,7 @@ def execute_dwt(epoch_data, decompose_level, d_num):
             details.extend(coeffs[n])
         details_per_epoch.append(details) # Creates an element for each channel per sample
     all_details.append(details_per_epoch) # Creates elements for the number of batches
-    return all_details, dir_name
+    return all_details
 
 def execute_envelope(epoch_data, ds, samplerate=160):
     all_envelope = []
@@ -175,7 +175,7 @@ for subject_dir in subject_dirs:
                 t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
 
                 if preprocessing_dir == "DWT_data":
-                    all_data, dir_name = execute_dwt(epoch_data, decompose_level, d_num)
+                    all_data = execute_dwt(epoch_data, decompose_level, d_num)
                 elif preprocessing_dir == "Envelope_data":
                     all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
