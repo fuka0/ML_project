@@ -105,7 +105,7 @@ def execute_dwt(epoch_data, decompose_level, d_num):
             details.extend(coeffs[n])
         details_per_epoch.append(details) # Creates an element for each channel per sample
     all_details.append(details_per_epoch) # Creates elements for the number of batches
-    return all_details, dir_name
+    return all_details
 
 def execute_envelope(epoch_data, ds, samplerate=160):
     all_envelope = []
