@@ -19,7 +19,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 def generate_string(decompose_level, d_num):
     details = [f"d{i}" for i in range(decompose_level, decompose_level - d_num, -1)]
-    # 文字列を"_"で結合
+    # string is connected with "_"
     return "_".join(details)
 
 def Preprocessing(preprocessing_type):

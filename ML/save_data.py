@@ -38,6 +38,8 @@ def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=
         labels = all_labels[indices]
         data_list.append(data)
         label_list.append(labels)
+
+    # when rest is included(not now using)
     # rest_hand_indices = np.where(all_labels == 3)[0]
     # if number_of_ch == 64:
     #     rest_hand_data = all_epoch_data[rest_hand_indices]
