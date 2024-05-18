@@ -177,7 +177,7 @@ for subject_dir in subject_dirs:
                 t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
 
                 if preprocessing_dir == "DWT_data":
-                    all_data, dir_name = execute_dwt(epoch_data, decompose_level, d_num)
+                    all_data = execute_dwt(epoch_data, decompose_level, d_num)
                 elif preprocessing_dir == "Envelope_data":
                     all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
