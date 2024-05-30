@@ -53,7 +53,7 @@ for result_file_path in result_file_paths:
     if f"ds_{ds}" in parts and f"{n_class}class" in parts:
         index_name = decide_index(parts) # judge the preprocessing method
 
-        result_file = pd.read_excel(result_file_path, index_col=None, header=None) # load the result file
+        result_file = pd.read_excel(result_file_path, index_col=None, header=None, engine="openpyxl") # load the result file
         subject_names, subject_name_row = get_subject_name(result_file) # get the subject names list
 
         result_file = result_file.iloc[:3,:] # clear the unnecessary rows
@@ -69,7 +69,6 @@ for result_file_path in result_file_paths:
 
 df_64ch = create_dataframe_from_results(results_64ch)
 df_28ch = create_dataframe_from_results(results_28ch)
-
 jp_font_path = "C:/Windows/Fonts/meiryo.ttc"
 en_font_path = "C:/Windows/Fonts/times.ttf"
 jp_font = fm.FontProperties(fname=jp_font_path)
