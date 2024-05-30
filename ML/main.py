@@ -42,7 +42,7 @@ baseline_correction = True # baseline_correction(Basically True)
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
-preprocessing_type= "e" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
+preprocessing_type= "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 ds = 2 # down sampling rate(1/2, 1/3)
 
 d_num = 3 # Number of detail to use(D4,D3...)(2 or 3)
@@ -116,7 +116,7 @@ for number_of_ch in number_of_chs:
             y_train, y_test = y[train_idxs], y[test_idxs]
 
             # generate noise and add to data
-            noise = generate_noise(X_train, "gauss")
+            noise = generate_noise(X_train, "gauss", seed=22)
             X_train_noised = X_train + noise
 
             # Convert labels to categorical
@@ -155,7 +155,7 @@ for number_of_ch in number_of_chs:
             if reduce_data:
                 # generate random indices for reducing data
                 indices = np.arange(X_sstl.shape[0])
-                np.random.shuffle(indices)
+                np.random.shuffle(indices, seed = 22)
                 indices = indices[:num_samples]
 
                 X_sstl = X_sstl[indices]
