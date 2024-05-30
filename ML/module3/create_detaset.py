@@ -128,7 +128,10 @@ def make_columns(n_class):
         columns = ["left_fist", "right_fist", "both_fists", "both_feet"]
     return columns
 
-def generate_noise(data, type_of_noise):
+def generate_noise(data, type_of_noise, seed = None):
+    if seed is not None:
+        np.random.seed(seed)
+
     if type_of_noise == "gauss":
         noise = np.random.normal(loc=0, scale=1, size=data.shape)
     elif type_of_noise == "white":
