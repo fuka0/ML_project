@@ -32,7 +32,9 @@ baseline = "baseline_true" if baseline_correction else "baseline_false"
 preprocessing_type= "d"
 
 preprocessing_dir = Preprocessing(preprocessing_type)
-ds = 3 # ダウンサンプリングの設定
+ds = 2 # ダウンサンプリングの設定
+
+filename_change = "_L5"
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル
@@ -43,7 +45,7 @@ details_dir = generate_string(decompose_level, d_num)
 
 current_dir = Path.cwd()
 target_dir = current_dir / "ML" / "result" / preprocessing_dir / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
-target_paths = list(Path.glob(target_dir, "*.txt"))
+target_paths = list(Path.glob(target_dir, f"*{filename_change}.txt"))
 roc_dir = target_dir / "ROC"
 learning_curve_dir = target_dir / "Learning_Curve"
 os.makedirs(roc_dir, exist_ok=True)
@@ -75,7 +77,7 @@ for target_path in target_paths:
     ax1.set_ylabel('True Positive Rate', fontsize=18)
     ax1.legend(loc="lower right", fontsize=15)
     ax1.set_title(f"ROC", fontsize=15)
-    plt.savefig(roc_dir / f"{subject_name}_ROC.png")
+    plt.savefig(roc_dir / f"{subject_name}_ROC{filename_change}.png")
     plt.clf()
     plt.close()
 
@@ -83,7 +85,7 @@ for target_path in target_paths:
 n_fold = 1
 i = 0
 logs_dir = current_dir / "ML" / "logs" / preprocessing_dir / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
-log_paths = list(logs_dir.rglob("*.csv"))
+log_paths = list(logs_dir.rglob(f"*{filename_change}.csv"))
 
 log_dict = {}
 folds = set(log_path.parent.name for log_path in log_paths)
@@ -114,6 +116,6 @@ for fold, log_paths in log_dict.items():
         ax2[1].grid()
         save_dir = learning_curve_dir / fold
         os.makedirs(save_dir, exist_ok=True)
-        plt.savefig(save_dir / f"{model_name}_{subject_name}_LC.png")
+        plt.savefig(save_dir / f"{model_name}_{subject_name}_LC{filename_change}.png")
         plt.clf()
         plt.close()

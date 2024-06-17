@@ -7,7 +7,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, CSVLogg
 from keras.utils import to_categorical, plot_model
 from module3.create_detaset import select_electrode, load_data, make_columns, generate_noise
 from keras.models import load_model
-from module2.create_model import one_dim_CNN_model, create_model_builder, line_notify, Bayesian_Opt, multi_stream_1D_CNN_model
+from module2.create_model import one_dim_CNN_model, create_model_builder, line_notify, Bayesian_Opt
 from sklearn.model_selection import StratifiedShuffleSplit, StratifiedGroupKFold, train_test_split
 from skopt.space import Real, Categorical, Integer
 import os
@@ -32,7 +32,7 @@ def Preprocessing(preprocessing_type):
     return preprocessing_dir
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
-n_class = 4 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 # number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 number_of_ch = 64 # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # static variables
@@ -43,7 +43,7 @@ baseline_correction = True # baseline_correction(Basically True)
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
-preprocessing_type = "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
+preprocessing_type= "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 ds = 2 # down sampling rate(1/2, 1/3)
 
 d_num = 3 # Number of detail to use(D4,D3...)(2 or 3)
@@ -54,6 +54,7 @@ num_samples = 90  # Number of samples to use when reducing data(default=90)
 
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
+
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 current_dir = Path.cwd()
@@ -69,7 +70,9 @@ target_subjects = random.sample(subjects_name, 5)
 
 details_dir = generate_string(decompose_level, d_num)
 
-filename_change = "_multi_stream_4cla"
+filename_change = "_cluster0.3"
+
+group_subjects = ['S001', 'S004', 'S011', 'S018', 'S021', 'S022', 'S023', 'S024', 'S029', 'S032', 'S033', 'S034', 'S037', 'S038', 'S041', 'S052', 'S056', 'S060', 'S065', 'S066', 'S067', 'S069', 'S070', 'S072', 'S074', 'S076', 'S078', 'S079', 'S080', 'S082', 'S085', 'S089', 'S091', 'S096', 'S097', 'S098', 'S101', 'S103']
 
 for target_subject in target_subjects:
     target_subject_index = target_subjects.index(target_subject)
@@ -80,6 +83,7 @@ for target_subject in target_subjects:
 
     if preprocessing_dir == "DWT_data":
         data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
+        data_paths = [path for path in data_paths if path.parent.name in group_subjects]
     elif preprocessing_dir == "Envelope_data":
         data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
     elif preprocessing_dir == "BPF_data":
@@ -136,7 +140,6 @@ for target_subject in target_subjects:
 
         # difinition of model
         model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
-        # model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
         # plot_model(model, to_file="general_model.png", show_shapes=True)
 
         log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"

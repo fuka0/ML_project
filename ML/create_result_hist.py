@@ -34,9 +34,9 @@ def add_labels(ax):
                     fontproperties=en_font,
                     fontsize=value_label_fontsize)
 # ////////////////////////////////////////////////////////////////////////////////////////
-n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
-number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
-ds = 2 # down sampling rate(1/2, 1/3)
+n_class = 4 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+number_of_chs = [64, 28, 12] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
+ds = 3 # down sampling rate(1/2, 1/3)
 
 current_dir = Path.cwd()
 result_dir = current_dir / "ML" / "result"

@@ -1,5 +1,5 @@
 from tensorflow import keras
-from keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten, Input, AveragePooling1D, Activation
+from keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten, Input, AveragePooling1D, Activation, concatenate
 from keras.models import Model
 from keras.layers import SeparableConv1D, BatchNormalization
 import requests
@@ -9,9 +9,60 @@ from skopt.space import Real, Categorical, Integer
 from keras.wrappers.scikit_learn import KerasClassifier
 from skopt import BayesSearchCV
 from keras.callbacks import EarlyStopping
+from keras import regularizers
 
-def one_dim_CNN_model(input_shape, n_class, stride=2, conv1_filters=32, kernel1_size=20, conv2_filters=32, kernel2_size=9, conv3_filters=32,
-                    kernel3_size=5, dense1_nodes=26, dense2_nodes=13, dropout_rate=0.2, optimizer='adam', learning_rate=0.001):
+def multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001):
+    if optimizer == 'sgd':
+        opt = keras.optimizers.SGD(learning_rate=learning_rate)
+    elif optimizer == 'rmsprop':
+        opt = keras.optimizers.RMSprop(learning_rate=learning_rate)
+    elif optimizer == 'adam':
+        opt = keras.optimizers.Adam(learning_rate=learning_rate)
+    else:
+        raise ValueError("Unknown optimizer")
+
+    input_layer = Input(shape=input_shape)
+
+    # Define four streams with different kernel sizes
+    def create_stream(input_layer, kernel_size):
+        x = Conv1D(127, kernel_size, strides=1, padding='same', activation='relu')(input_layer)
+        x = Conv1D(127, kernel_size, strides=1, padding='same', activation='relu')(x)
+        x = Conv1D(127, kernel_size, strides=2, padding='same', activation='relu')(x)
+        x = Conv1D(64, kernel_size, strides=1, padding='same', activation='relu')(x)
+        x = Conv1D(32, kernel_size, strides=1, padding='same', activation='relu')(x)
+        # x = Conv1D(256, kernel_size, strides=1, padding='same', activation='relu')(input_layer)
+        # x = Conv1D(256, kernel_size, strides=1, padding='same', activation='relu')(x)
+        # x = Conv1D(256, kernel_size, strides=2, padding='same', activation='relu')(x)
+        # x = Conv1D(127, kernel_size, strides=1, padding='same', activation='relu')(x)
+        # x = Conv1D(64, kernel_size, strides=1, padding='same', activation='relu')(x)
+        x = AveragePooling1D()(x)
+        x = Flatten()(x)
+        return x
+
+    stream1 = create_stream(input_layer, 7)
+    stream2 = create_stream(input_layer, 9)
+    stream3 = create_stream(input_layer, 11)
+    stream4 = create_stream(input_layer, 13)
+
+    # Concatenate all streams
+    concatenated = concatenate([stream1, stream2, stream3, stream4])
+
+    # Classifier
+    x = Dropout(0.3)(concatenated)
+    x = Dense(120, activation='relu')(x)
+    x = Dropout(0.3)(x)
+    output_layer = Dense(n_class, activation='softmax')(x)
+
+    model = Model(input_layer, output_layer)
+    if n_class == 2:
+        model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+    else:
+        model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+
+    return model
+
+
+def one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001):
     if optimizer == 'sgd':
         opt = keras.optimizers.SGD(learning_rate=learning_rate)
     elif optimizer == 'rmsprop':
@@ -32,8 +83,8 @@ def one_dim_CNN_model(input_shape, n_class, stride=2, conv1_filters=32, kernel1_
     x = Activation("elu")(x)
     x = SeparableConv1D(28, 3, strides=1, activation='relu', padding='valid', name="L5")(x)
     x = Flatten(name="L6")(x)
-    x = Dense(20, activation='relu', name="L7")(x)
-    x = Dropout(dropout_rate)(x)
+    x = Dense(20, activation='relu', kernel_regularizer=regularizers.l2(0.001), name="L7")(x)
+    x = Dropout(0.2)(x)
     x = Dense(12, activation='relu', name="L8")(x)
     output_layer = Dense(n_class, activation='softmax', name="L9")(x)
 

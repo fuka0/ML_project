@@ -29,7 +29,7 @@ def select_electrode(number_of_ch=int):
             extracted_ch.append(all_ch[i])
 
     elif number_of_ch == 12:
-        ch_idx = [2, 4, 1, 5, 9, 11, 8, 12, 16, 18, 15, 19]
+        ch_idx = [1, 2, 4, 5, 8, 9, 11, 12, 15, 16, 18, 19]
         for i in ch_idx:
             extracted_ch.append(all_ch[i])
 
