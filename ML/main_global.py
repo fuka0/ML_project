@@ -32,7 +32,7 @@ def Preprocessing(preprocessing_type):
     return preprocessing_dir
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
-n_class = 4 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 # number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 number_of_ch = 64 # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # static variables
