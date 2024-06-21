@@ -85,7 +85,7 @@ def one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.00
     x = Flatten(name="L6")(x)
     x = Dense(20, activation='relu', kernel_regularizer=regularizers.l2(0.001), name="L7")(x)
     x = Dropout(0.2)(x)
-    x = Dense(12, activation='relu', name="L8")(x)
+    x = Dense(20, activation='relu', name="L8")(x)
     output_layer = Dense(n_class, activation='softmax', name="L9")(x)
 
     model = Model(input_layer, output_layer)
@@ -95,6 +95,71 @@ def one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.00
         model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     # model.summary()
     return model
+
+# def one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001):
+#     if optimizer == 'sgd':
+#         opt = keras.optimizers.SGD(learning_rate=learning_rate)
+#     elif optimizer == 'rmsprop':
+#         opt = keras.optimizers.RMSprop(learning_rate=learning_rate)
+#     elif optimizer == 'adam':
+#         opt = keras.optimizers.Adam(learning_rate=learning_rate)
+#     else:
+#         raise ValueError("Unknown optimizer")
+
+#     input_layer = Input(shape=input_shape)
+#     x = Conv1D(28, 20, strides=2, activation='relu', padding='same', name="L1")(input_layer)
+#     # x = BatchNormalization()(x)
+#     # x = Activation("elu")(x)
+#     # x = Conv1D(28, 5, strides=1, activation='relu', padding='same', name="L2")(x)
+#     x = BatchNormalization()(x)
+#     x = Activation("elu")(x)
+#     x = Flatten(name="L3")(x)
+#     x = Dense(20, activation='relu', kernel_regularizer=regularizers.l2(0.001), name="L4")(x)
+#     x = Dropout(0.2)(x)
+#     # x = Dense(20, activation='relu', name="L5")(x)
+#     output_layer = Dense(n_class, activation='softmax', name="L6")(x)
+
+#     model = Model(input_layer, output_layer)
+#     if n_class == 2:
+#         model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+#     else:
+#         model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+#     # model.summary()
+#     return model
+
+# def one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001):
+#     if optimizer == 'sgd':
+#         opt = keras.optimizers.SGD(learning_rate=learning_rate)
+#     elif optimizer == 'rmsprop':
+#         opt = keras.optimizers.RMSprop(learning_rate=learning_rate)
+#     elif optimizer == 'adam':
+#         opt = keras.optimizers.Adam(learning_rate=learning_rate)
+#     else:
+#         raise ValueError("Unknown optimizer")
+
+#     input_layer = Input(shape=input_shape)
+#     x = Conv1D(28, 20, strides=2, activation='relu', padding='same', name="L1")(input_layer)
+#     x = BatchNormalization()(x)
+#     x = Activation("elu")(x)
+#     x = SeparableConv1D(20, 9, strides=2, activation='relu', padding='valid', name="L2")(x)
+#     x = AveragePooling1D(2, name="L3")(x)
+#     # x = Conv1D(28, 5, strides=1, activation='relu', padding='same', name="L4")(x)
+#     # x = BatchNormalization()(x)
+#     # x = Activation("elu")(x)
+#     # x = SeparableConv1D(28, 3, strides=1, activation='relu', padding='valid', name="L5")(x)
+#     x = Flatten(name="L6")(x)
+#     x = Dense(20, activation='relu', kernel_regularizer=regularizers.l2(0.001), name="L7")(x)
+#     x = Dropout(0.2)(x)
+#     # x = Dense(20, activation='relu', name="L8")(x)
+#     output_layer = Dense(n_class, activation='softmax', name="L9")(x)
+
+#     model = Model(input_layer, output_layer)
+#     if n_class == 2:
+#         model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+#     else:
+#         model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+#     # model.summary()
+#     return model
 
 def create_model_builder(input_shape, n_class):
     def model_builder(input_shape, n_class, conv1_filters=64, kernel1_size=20, stride1=2, stride2=1, conv2_filters=32, kernel2_size=15, conv3_filters=64,

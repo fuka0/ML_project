@@ -34,7 +34,7 @@ preprocessing_type= "d"
 preprocessing_dir = Preprocessing(preprocessing_type)
 ds = 2 # ダウンサンプリングの設定
 
-filename_change = "_L5"
+filename_change = "_batch=12_ease"
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル

@@ -6,8 +6,6 @@ ds3_path = "C:/Users/keisokuken_kaisekiPC/Documents/Python_project/ML_project/ML
 
 ds2_data = np.load(ds2_path, allow_pickle=True).item()["left_right_fist"]["epoch_data"]
 ds3_data = np.load(ds3_path, allow_pickle=True).item()["left_right_fist"]["epoch_data"]
-# print(ds2_data[0].T.shape)
-# print(ds3_data[0])
 
 for i in range(30):
     fig, ax = plt.subplots(2, 1, figsize=(10,20))
