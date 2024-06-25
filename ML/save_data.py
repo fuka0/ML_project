@@ -57,7 +57,8 @@ def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=
     return combined_data, combined_labels
 
 def dwt(sig, level, t, ch_name, wavelet, plot = bool):
-    coeffs = pywt.wavedec(sig, wavelet, level=level)
+    coeffs = pywt.wavedec(sig, wavelet, level=level, mode="periodic")
+    # coeffs = pywt.wavedec(sig, wavelet, level=level)
     nyq_freq = len(coeffs[level])
     sub_band_freq = {}
     if plot == True:
@@ -124,7 +125,9 @@ def execute_bpf(epoch_data, ds):
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 samplerate = 160 # Sampling frequency
-wave_list = ["mu", "beta", "mu_beta"]
+task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
+task_name_list = ["actual_imagine", "actual", "imagine"]
+
 downsampling_levels = [2, 3] # Downsampling levels
 
 extraction_section = True # True if the extraction section does not include rest, False if it does
@@ -137,12 +140,12 @@ type_of_movement_1 = "left_right_fist"
 type_of_movement_2 = "fists_feet"
 
 current_dir = Path.cwd() # Get the current directory
-eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data"
+eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / task_name_list[task_type]
 
 preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # Number of details to be obtained (from top down {D4,D3...})
-decompose_level = 5 # Decomposition level
+decompose_level = 4 # Decomposition level
 
 # Get data path
 subject_dirs = []
@@ -177,7 +180,13 @@ for subject_dir in subject_dirs:
                 t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
 
                 if preprocessing_dir == "DWT_data":
+                    # max_level = pywt.dwt_max_level(epoch_data.shape[1], 'db2')
+                    # print(f"Max level for the given signal: {max_level}")
                     all_data = execute_dwt(epoch_data, decompose_level, d_num)
+                    # print(len(all_data[0][0]))
+                    # plt.plot(all_data[0][0])
+                    # plt.show()
+                    # print("a")
                 elif preprocessing_dir == "Envelope_data":
                     all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
@@ -190,11 +199,11 @@ for subject_dir in subject_dirs:
             all_data_dict[movement_type] = {"epoch_data": all_preprocessing_data, "labels": y}
 
         if preprocessing_dir == "DWT_data":
-            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "Envelope_data":
-            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "BPF_data":
-            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         os.makedirs(save_dir, exist_ok=True)
         output_file = save_dir / f"{preprocessing_dir}.npy"
-        # np.save(output_file, all_data_dict)
+        np.save(output_file, all_data_dict)
