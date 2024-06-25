@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
+from matplotlib.ticker import FormatStrFormatter
 
 def get_subject_name(result_file):
     subject_name_row = result_file.iloc[1,:].dropna()
@@ -34,13 +35,15 @@ def add_labels(ax):
                     fontproperties=en_font,
                     fontsize=value_label_fontsize)
 # ////////////////////////////////////////////////////////////////////////////////////////
-n_class = 4 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
-number_of_chs = [64, 28, 12] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
+n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 ds = 3 # down sampling rate(1/2, 1/3)
+
+fileneme_change = "_2Q_result"
 
 current_dir = Path.cwd()
 result_dir = current_dir / "ML" / "result"
-result_file_paths = [result_file_path for result_file_path in list(result_dir.rglob("*.xlsx"))] # get all result file paths
+result_file_paths = [result_file_path for result_file_path in list(result_dir.rglob(f"*{fileneme_change}.xlsx"))] # get all result file paths
 
 # make temporary dictionary to store the results
 results_28ch = {"旧処理": {}, "新処理": {}}

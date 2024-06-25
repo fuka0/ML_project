@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from module3.create_detaset import select_electrode, load_data, make_columns, generate_noise
 import os
 import numpy as np
+from matplotlib.ticker import FormatStrFormatter
 os.environ["OMP_NUM_THREADS"] = "1"
 
 def generate_string(decompose_level, d_num):
@@ -34,7 +35,7 @@ preprocessing_type= "d"
 preprocessing_dir = Preprocessing(preprocessing_type)
 ds = 2 # ダウンサンプリングの設定
 
-filename_change = "_batch=12_ease"
+filename_change = "_2Q_result_normal1d"
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル
@@ -68,6 +69,7 @@ for target_path in target_paths:
             thresholds_loaded.append(float(th))
 
     fig, ax1 = plt.subplots(figsize=(10, 8))
+    ax1.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax1.plot(fpr_loaded, tpr_loaded, label=f'{subject_name}_ROC curve (AUC = {auc_loaded:.2f})', linewidth=2)
     ax1.plot([0, 1], [0, 1], color='gray', linestyle='--')
     ax1.set_xlim([0.0, 1.0])
@@ -100,9 +102,11 @@ for fold, log_paths in log_dict.items():
         subject_name = log_path.name.split("_")[1]
         df = pd.read_csv(log_path)
         fig, ax2 = plt.subplots(1, 2, figsize=(13, 8))
+        ax2[0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        ax2[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax2[0].plot(df['loss'], "o-", label=f'{subject_name} Loss')
         ax2[0].plot(df['val_loss'], "o-", label=f'{subject_name} Validation Loss', color="orange")
-        ax2[1].plot(df['accuracy'], "o-", label=f'{subject_name} Accuracy')
+        ax2[1].plot(df['accuracy'], "o-", label=f'{subject_name} Accuracy [%]')
         ax2[1].plot(df['val_accuracy'], "o-", label=f'{subject_name} Validation Accuracy', color="orange")
         ax2[0].legend(fontsize=12)
         ax2[1].legend(fontsize=12)
