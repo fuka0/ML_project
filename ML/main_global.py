@@ -68,7 +68,7 @@ num_samples = 90  # Number of samples to use when reducing data(default=90)
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
 
-filename_change = f"_2Q_result_normal1d_test"
+filename_change = f"_a"
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 current_dir = Path.cwd()
@@ -155,7 +155,7 @@ for target_subject in target_subjects:
         # difinition of model
         model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
         # model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
-        # plot_model(model, to_file="general_model.png", show_shapes=True)
+        plot_model(model, to_file="general_model2.png", show_shapes=True)
 
         log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
         model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
