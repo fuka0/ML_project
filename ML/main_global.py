@@ -329,9 +329,14 @@ for target_subject in target_subjects:
 
     # Plot the heatmap of the confusion matrix
     plt.figure(figsize=(8, 6))
+    labels = {
+        2:["Left Fist", "Right Fist"],
+        3:["Left Fist", "Right Fist", "Both Fists"],
+        4:["Left Fist", "Right Fist", "Both Fists", "Both Feet"]
+    }
     sns.heatmap(average_conf_matrix, annot=True, cmap="Blues", fmt=".1f",
-                xticklabels=["Left Fist", "Right Fist"],
-                yticklabels=["Left Fist", "Right Fist"])
+                xticklabels=labels[n_class],
+                yticklabels=labels[n_class])
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.title(f'Average Confusion Matrix Heatmap {target_subject}')
