@@ -43,7 +43,7 @@ def Preprocessing(preprocessing_type):
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
 # n_class_multi = [2, 3, 4] # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
-task_type = 1 # actual_imagine = 0, actual = 1, imagine = 2
+task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
 
 n_class = 2
@@ -60,7 +60,7 @@ baseline = "baseline_true" if baseline_correction else "baseline_false"
 preprocessing_type = "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 # preprocessing_types = ["d", "e"] # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 # dss = [2, 3] # down sampling rate(1/2, 1/3)
-ds = 2
+ds = 3
 
 d_num = 3 # Number of detail to use(D4,D3...)(2 or 3)
 decompose_level = 5 # Number of decomposition level
@@ -71,7 +71,7 @@ num_samples = 90  # Number of samples to use when reducing data(default=90)
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
 
-filename_change = f"_newdata_test"
+filename_change = f"_a"
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 current_dir = Path.cwd()
@@ -156,8 +156,8 @@ for target_subject in target_subjects:
         input_shape = (X_train_combined.shape[1], X_train_combined.shape[2])
 
         # difinition of model
-        # model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
-        model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
+        model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
+        # model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
         # plot_model(model, to_file="general_model.png", show_shapes=True)
 
         log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
@@ -168,12 +168,12 @@ for target_subject in target_subjects:
         # callbacks_list = [
         #                 ModelCheckpoint(f"{model_dir}/target_{target_subject}_model{filename_change}.keras", save_best_only=True, monitor='val_loss', mode='min'),
         #                 CSVLogger(log_dir / f"global_{target_subject}_model{filename_change}.csv", append=False)]
-        
+
         callbacks_list = [EarlyStopping(monitor="val_loss", patience=3),
                         ModelCheckpoint(f"{model_dir}/target_{target_subject}_model{filename_change}.keras", save_best_only=True, monitor='val_loss', mode='min'),
                         CSVLogger(log_dir / f"global_{target_subject}_model{filename_change}.csv", append=False)]
 
-        model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=12, validation_data=(X_test, y_test), callbacks=callbacks_list)
+        model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks_list)
 
 # //////////Transfer Learning part//////////
         group_results = []
@@ -222,7 +222,7 @@ for target_subject in target_subjects:
             # sstl_callbacks_list = [CSVLogger(log_dir / f"target_{target_subject}_model{filename_change}.csv", append=False)]
 
             # Transfer Learning
-            history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=50, batch_size=12, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
+            history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=50, batch_size=32, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
             y_pred = general_model.predict(X_test_sstl)
 
             y_pred_classes = np.argmax(y_pred, axis=1)

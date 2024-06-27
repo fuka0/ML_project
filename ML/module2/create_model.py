@@ -34,13 +34,14 @@ def multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_r
         x = Flatten()(x)
         return x
 
+    stream0 = create_stream(input_layer, 5)
     stream1 = create_stream(input_layer, 7)
     stream2 = create_stream(input_layer, 9)
     stream3 = create_stream(input_layer, 11)
     stream4 = create_stream(input_layer, 13)
 
     # Concatenate all streams
-    concatenated = concatenate([stream1, stream2, stream3, stream4])
+    concatenated = concatenate([stream0, stream1, stream2, stream3, stream4])
 
     # Classifier
     x = Dropout(0.3)(concatenated)

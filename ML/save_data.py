@@ -125,7 +125,7 @@ def execute_bpf(epoch_data, ds):
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 samplerate = 160 # Sampling frequency
-task_type = 2 # actual_imagine = 0, actual = 1, imagine = 2
+task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
 
 downsampling_levels = [2, 3] # Downsampling levels
@@ -142,7 +142,7 @@ type_of_movement_2 = "fists_feet"
 current_dir = Path.cwd() # Get the current directory
 eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / task_name_list[task_type]
 
-preprocessing_type= "b" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # Number of details to be obtained (from top down {D4,D3...})
 decompose_level = 5 # Decomposition level
@@ -176,18 +176,12 @@ for subject_dir in subject_dirs:
             for i, epoch_data in enumerate(X):
                 # Apply preprocessing
                 if preprocessing_dir == "DWT_data":
-                    # max_level = pywt.dwt_max_level(epoch_data.shape[1], 'db2')
-                    # print(f"Max level for the given signal: {max_level}")
                     all_data = execute_dwt(epoch_data, decompose_level, d_num)
-                    # print(len(all_data[0][0]))
-                    # plt.plot(all_data[0][0])
-                    # plt.show()
-                    # print("a")
                 elif preprocessing_dir == "Envelope_data":
                     all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
                     all_data = execute_bpf(epoch_data, ds)
-                
+
                 # Apply anti-aliasing filter
                 for data in all_data:
                     cutoff = samplerate // (2 * ds)  # Set cutoff frequency
