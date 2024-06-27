@@ -30,22 +30,23 @@ def multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_r
         x = Conv1D(127, kernel_size, strides=2, padding='same', activation='relu')(x)
         x = Conv1D(64, kernel_size, strides=1, padding='same', activation='relu')(x)
         x = Conv1D(32, kernel_size, strides=1, padding='same', activation='relu')(x)
-        x = AveragePooling1D()(x)
+        x = AveragePooling1D(2)(x)
         x = Flatten()(x)
         return x
 
+    stream0 = create_stream(input_layer, 5)
     stream1 = create_stream(input_layer, 7)
     stream2 = create_stream(input_layer, 9)
     stream3 = create_stream(input_layer, 11)
     stream4 = create_stream(input_layer, 13)
 
     # Concatenate all streams
-    concatenated = concatenate([stream1, stream2, stream3, stream4])
+    concatenated = concatenate([stream0, stream1, stream2, stream3, stream4])
 
     # Classifier
     x = Dropout(0.3)(concatenated)
     x = Dense(120, activation='relu')(x)
-    x = Dropout(0.3)(x)
+    x = Dropout(0.2)(x)
     output_layer = Dense(n_class, activation='softmax')(x)
 
     model = Model(input_layer, output_layer)
