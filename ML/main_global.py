@@ -43,6 +43,9 @@ def Preprocessing(preprocessing_type):
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
 # n_class_multi = [2, 3, 4] # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+task_type = 1 # actual_imagine = 0, actual = 1, imagine = 2
+task_name_list = ["actual_imagine", "actual", "imagine"]
+
 n_class = 2
 # number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 number_of_ch = 64 # How many channels to use (64, 38, 28, 19, 18, 12, 6)
@@ -68,7 +71,7 @@ num_samples = 90  # Number of samples to use when reducing data(default=90)
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
 
-filename_change = f"_2Q_result_normal1d_test"
+filename_change = f"_newdata_test"
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 current_dir = Path.cwd()
@@ -97,11 +100,11 @@ for target_subject in target_subjects:
         df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1"], columns=columns)
 
     if preprocessing_dir == "DWT_data":
-        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
+        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
     elif preprocessing_dir == "Envelope_data":
-        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
+        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
     elif preprocessing_dir == "BPF_data":
-        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / f"ds_{ds}" ).glob(f"S*/*.npy"))
+        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
 
     for data_path in data_paths:
         if data_path.parent.name == target_subject:
@@ -153,12 +156,12 @@ for target_subject in target_subjects:
         input_shape = (X_train_combined.shape[1], X_train_combined.shape[2])
 
         # difinition of model
-        model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
-        # model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
+        # model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
+        model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
         # plot_model(model, to_file="general_model.png", show_shapes=True)
 
-        log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
-        model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / f"{number_of_ch}ch"/f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
+        log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
+        model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
         os.makedirs(log_dir, exist_ok=True)
         os.makedirs(model_dir, exist_ok=True)
 
@@ -306,10 +309,10 @@ for target_subject in target_subjects:
 
     # Output average of the evaluation index of each task
     if preprocessing_dir == "DWT_data":
-        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
         os.makedirs(save_dir, exist_ok=True)
     elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
-        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
         os.makedirs(save_dir, exist_ok=True)
     # Save the text file
     with open(save_dir / f"roc_auc_data_{target_subject}{filename_change}.txt", "w") as file:
@@ -329,9 +332,14 @@ for target_subject in target_subjects:
 
     # Plot the heatmap of the confusion matrix
     plt.figure(figsize=(8, 6))
+    labels = {
+        2:["Left Fist", "Right Fist"],
+        3:["Left Fist", "Right Fist", "Both Fists"],
+        4:["Left Fist", "Right Fist", "Both Fists", "Both Feet"]
+    }
     sns.heatmap(average_conf_matrix, annot=True, cmap="Blues", fmt=".1f",
-                xticklabels=["Left Fist", "Right Fist"],
-                yticklabels=["Left Fist", "Right Fist"])
+                xticklabels=labels[n_class],
+                yticklabels=labels[n_class])
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.title(f'Average Confusion Matrix Heatmap {target_subject}')

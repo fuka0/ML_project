@@ -57,6 +57,7 @@ def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=
     return combined_data, combined_labels
 
 def dwt(sig, level, t, ch_name, wavelet, plot = bool):
+    # coeffs = pywt.wavedec(sig, wavelet, level=level, mode="periodic")
     coeffs = pywt.wavedec(sig, wavelet, level=level)
     nyq_freq = len(coeffs[level])
     sub_band_freq = {}
@@ -124,7 +125,9 @@ def execute_bpf(epoch_data, ds):
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 samplerate = 160 # Sampling frequency
-wave_list = ["mu", "beta", "mu_beta"]
+task_type = 2 # actual_imagine = 0, actual = 1, imagine = 2
+task_name_list = ["actual_imagine", "actual", "imagine"]
+
 downsampling_levels = [2, 3] # Downsampling levels
 
 extraction_section = True # True if the extraction section does not include rest, False if it does
@@ -137,9 +140,9 @@ type_of_movement_1 = "left_right_fist"
 type_of_movement_2 = "fists_feet"
 
 current_dir = Path.cwd() # Get the current directory
-eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data"
+eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / task_name_list[task_type]
 
-preprocessing_type= "e" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type= "b" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # Number of details to be obtained (from top down {D4,D3...})
 decompose_level = 5 # Decomposition level
@@ -167,34 +170,41 @@ for subject_dir in subject_dirs:
         all_data_dict = {}
         for data, movement_type in zip([data_1, data_2], [type_of_movement_1, type_of_movement_2]):
             epoch_data = np.stack(data["epoch_data"])
+            t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
             labels = data["label"]
             X, y = distribute_labels(ch_idx, epoch_data, labels, n_class, number_of_ch=64)
             for i, epoch_data in enumerate(X):
-                # Apply anti-aliasing filter
-                cutoff = samplerate // (2 * ds)  # Set cutoff frequency
-                filtered_epoch_data = apply_antialiasing_filter(epoch_data, cutoff, samplerate)
-                epoch_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1) # Downsample the data
-                t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
-
+                # Apply preprocessing
                 if preprocessing_dir == "DWT_data":
+                    # max_level = pywt.dwt_max_level(epoch_data.shape[1], 'db2')
+                    # print(f"Max level for the given signal: {max_level}")
                     all_data = execute_dwt(epoch_data, decompose_level, d_num)
+                    # print(len(all_data[0][0]))
+                    # plt.plot(all_data[0][0])
+                    # plt.show()
+                    # print("a")
                 elif preprocessing_dir == "Envelope_data":
                     all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
                     all_data = execute_bpf(epoch_data, ds)
-                all_data_list.extend(all_data)
+                
+                # Apply anti-aliasing filter
+                for data in all_data:
+                    cutoff = samplerate // (2 * ds)  # Set cutoff frequency
+                    filtered_epoch_data = apply_antialiasing_filter(data, cutoff, samplerate)
+                    downsampled_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1) # Downsample the data
+                    all_data_list.extend([downsampled_data])
             all_preprocessing_data = np.array(all_data_list).transpose(0,2,1) # Reshape to (number of trials, number of sample points, number of channels)
             all_data_list = []
-
             # Add data and labels for each movement state to the dictionary
             all_data_dict[movement_type] = {"epoch_data": all_preprocessing_data, "labels": y}
 
         if preprocessing_dir == "DWT_data":
-            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "DWT_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "Envelope_data":
-            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "Envelope_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         elif preprocessing_dir == "BPF_data":
-            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / f"ds_{ds}" / subject_id
+            save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         os.makedirs(save_dir, exist_ok=True)
         output_file = save_dir / f"{preprocessing_dir}.npy"
         np.save(output_file, all_data_dict)
