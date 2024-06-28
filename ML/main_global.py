@@ -350,3 +350,4 @@ for target_subject in target_subjects:
 
 message = "機械学習終了!!"
 line_notify(message)
+

@@ -54,7 +54,6 @@ for type_of_movement in type_of_movements:
         subject_epoch_data = []
         subject_labels = []
         for file in file_path:
-            print(file.name)
             raw = mne.io.read_raw_edf(file,preload=True)
             # for ann in raw.annotations:
             #     print('Onset:', ann['onset'])
@@ -105,7 +104,7 @@ for type_of_movement in type_of_movements:
 
             save_path = tmp_save_path / f"S{num+1:03d}"  # Adjust the directory name for saving to sequential numbering
             os.makedirs(save_path,exist_ok=True)
-            # np.save(f"{save_path}/{type_of_movement}_movement.npy", structured_data)
+            np.save(f"{save_path}/{type_of_movement}_movement.npy", structured_data)
             num += 1
         else:
             pass
