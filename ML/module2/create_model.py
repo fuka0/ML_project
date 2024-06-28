@@ -1,5 +1,5 @@
 from tensorflow import keras
-from keras.layers import Conv1D, MaxPooling1D, Dense, Dropout, Flatten, Input, AveragePooling1D, Activation, concatenate
+from keras.layers import Conv1D, Dense, Dropout, Flatten, Input, AveragePooling1D, Activation, concatenate
 from keras.models import Model
 from keras.layers import SeparableConv1D, BatchNormalization
 import requests
@@ -41,7 +41,8 @@ def multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_r
     stream4 = create_stream(input_layer, 13)
 
     # Concatenate all streams
-    concatenated = concatenate([stream0, stream1, stream2, stream3, stream4])
+    # concatenated = concatenate([stream0, stream1, stream2, stream3, stream4])
+    concatenated = concatenate([stream0, stream1, stream3, stream4])
 
     # Classifier
     x = Dropout(0.3)(concatenated)

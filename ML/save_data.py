@@ -170,26 +170,25 @@ for subject_dir in subject_dirs:
         all_data_dict = {}
         for data, movement_type in zip([data_1, data_2], [type_of_movement_1, type_of_movement_2]):
             epoch_data = np.stack(data["epoch_data"])
-            t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
             labels = data["label"]
             X, y = distribute_labels(ch_idx, epoch_data, labels, n_class, number_of_ch=64)
             for i, epoch_data in enumerate(X):
-                # Apply preprocessing
+                # Apply anti-aliasing filter
+                cutoff = samplerate // (2 * ds)  # Set cutoff frequency
+                filtered_epoch_data = apply_antialiasing_filter(epoch_data, cutoff, samplerate)
+                epoch_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1) # Downsample the data
+                t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
+
                 if preprocessing_dir == "DWT_data":
                     all_data = execute_dwt(epoch_data, decompose_level, d_num)
                 elif preprocessing_dir == "Envelope_data":
                     all_data = execute_envelope(epoch_data, ds)
                 elif preprocessing_dir == "BPF_data":
                     all_data = execute_bpf(epoch_data, ds)
-
-                # Apply anti-aliasing filter
-                for data in all_data:
-                    cutoff = samplerate // (2 * ds)  # Set cutoff frequency
-                    filtered_epoch_data = apply_antialiasing_filter(data, cutoff, samplerate)
-                    downsampled_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1) # Downsample the data
-                    all_data_list.extend([downsampled_data])
+                all_data_list.extend(all_data)
             all_preprocessing_data = np.array(all_data_list).transpose(0,2,1) # Reshape to (number of trials, number of sample points, number of channels)
             all_data_list = []
+
             # Add data and labels for each movement state to the dictionary
             all_data_dict[movement_type] = {"epoch_data": all_preprocessing_data, "labels": y}
 

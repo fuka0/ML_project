@@ -26,6 +26,9 @@ n_class = 2 # 何クラス分類か(左手と右手なら2, 両手も含むな�
 number_of_ch = 64 # 使用するチャンネル数(64, 38, 19, 8)
 movement_types = ["left_right_fist", "fists_feet"] # 運動タイプを定義
 
+task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
+task_name_list = ["actual_imagine", "actual", "imagine"]
+
 extraction_section = True # 切り出し区間が安静時を含まないならTrue,含むならFalse
 baseline_correction = True # ベースライン補正の有無
 ext_sec = "move_only" if extraction_section else "rest_move"
@@ -35,7 +38,7 @@ preprocessing_type= "d"
 preprocessing_dir = Preprocessing(preprocessing_type)
 ds = 2 # ダウンサンプリングの設定
 
-filename_change = "_2Q_result_normal1d"
+filename_change = "_normal1d"
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル
@@ -45,7 +48,7 @@ ch_idx, extracted_ch = select_electrode(number_of_ch)
 details_dir = generate_string(decompose_level, d_num)
 
 current_dir = Path.cwd()
-target_dir = current_dir / "ML" / "result" / preprocessing_dir / "SS-TL_acc" / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+target_dir = current_dir / "ML" / "result" / preprocessing_dir / "SS-TL_acc" / f"{number_of_ch}ch"  / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
 target_paths = list(Path.glob(target_dir, f"*{filename_change}.txt"))
 roc_dir = target_dir / "ROC"
 learning_curve_dir = target_dir / "Learning_Curve"
@@ -86,7 +89,7 @@ for target_path in target_paths:
 
 n_fold = 1
 i = 0
-logs_dir = current_dir / "ML" / "logs" / preprocessing_dir / f"{number_of_ch}ch" / f"ds_{ds}" / f"{n_class}class"
+logs_dir = current_dir / "ML" / "logs" / preprocessing_dir / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
 log_paths = list(logs_dir.rglob(f"*{filename_change}.csv"))
 
 log_dict = {}
@@ -106,7 +109,7 @@ for fold, log_paths in log_dict.items():
         ax2[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
         ax2[0].plot(df['loss'], "o-", label=f'{subject_name} Loss')
         ax2[0].plot(df['val_loss'], "o-", label=f'{subject_name} Validation Loss', color="orange")
-        ax2[1].plot(df['accuracy'], "o-", label=f'{subject_name} Accuracy [%]')
+        ax2[1].plot(df['accuracy'], "o-", label=f'{subject_name} Accuracy')
         ax2[1].plot(df['val_accuracy'], "o-", label=f'{subject_name} Validation Accuracy', color="orange")
         ax2[0].legend(fontsize=12)
         ax2[1].legend(fontsize=12)
@@ -115,7 +118,7 @@ for fold, log_paths in log_dict.items():
         ax2[0].set_xlabel("Epoch", fontsize=18)
         ax2[1].set_xlabel("Epoch", fontsize=18)
         ax2[0].set_ylabel("Loss", fontsize=18)
-        ax2[1].set_ylabel("Accuracy", fontsize=18)
+        ax2[1].set_ylabel("Accuracy [%]", fontsize=18)
         ax2[0].grid()
         ax2[1].grid()
         save_dir = learning_curve_dir / fold
