@@ -43,10 +43,10 @@ def Preprocessing(preprocessing_type):
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
 # n_class_multi = [2, 3, 4] # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
-task_type = 1 # actual_imagine = 0, actual = 1, imagine = 2
+task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
 
-n_class = 2
+n_class = 4
 # number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 number_of_ch = 64 # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # static variables
@@ -57,7 +57,7 @@ baseline_correction = True # baseline_correction(Basically True)
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
-preprocessing_type = "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
+preprocessing_type = "b" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 # preprocessing_types = ["d", "e"] # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
 # dss = [2, 3] # down sampling rate(1/2, 1/3)
 ds = 2
@@ -71,7 +71,7 @@ num_samples = 90  # Number of samples to use when reducing data(default=90)
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
 
-filename_change = f"_newdata_test"
+filename_change = f"_c"
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 current_dir = Path.cwd()
@@ -115,6 +115,7 @@ for target_subject in target_subjects:
             break
 
     X, y, subject_ids = load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch)
+    print(X.shape)
     left_fist_idx = np.where(y == 0)
     right_fist_idx = np.where(y == 1)
     both_fists = np.where(y == 2)
@@ -173,7 +174,7 @@ for target_subject in target_subjects:
                         ModelCheckpoint(f"{model_dir}/target_{target_subject}_model{filename_change}.keras", save_best_only=True, monitor='val_loss', mode='min'),
                         CSVLogger(log_dir / f"global_{target_subject}_model{filename_change}.csv", append=False)]
 
-        model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=12, validation_data=(X_test, y_test), callbacks=callbacks_list)
+        model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks_list)
 
 # //////////Transfer Learning part//////////
         group_results = []
@@ -222,7 +223,7 @@ for target_subject in target_subjects:
             # sstl_callbacks_list = [CSVLogger(log_dir / f"target_{target_subject}_model{filename_change}.csv", append=False)]
 
             # Transfer Learning
-            history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=50, batch_size=12, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
+            history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=50, batch_size=32, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
             y_pred = general_model.predict(X_test_sstl)
 
             y_pred_classes = np.argmax(y_pred, axis=1)
