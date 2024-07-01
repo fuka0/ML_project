@@ -22,7 +22,7 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF"
     return preprocessing_dir
 # ////////////////////////////////////////////////////////////////////////////////////////
-n_class = 2 # 何クラス分類か(左手と右手なら2, 両手も含むなら3, 両足も含むなら4)
+n_class = 4 # 何クラス分類か(左手と右手なら2, 両手も含むなら3, 両足も含むなら4)
 number_of_ch = 64 # 使用するチャンネル数(64, 38, 19, 8)
 movement_types = ["left_right_fist", "fists_feet"] # 運動タイプを定義
 
@@ -33,12 +33,12 @@ extraction_section = True # 切り出し区間が安静時を含まないならT
 baseline_correction = True # ベースライン補正の有無
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
-preprocessing_type= "d"
+preprocessing_type= "b"
 
 preprocessing_dir = Preprocessing(preprocessing_type)
-ds = 2 # ダウンサンプリングの設定
+ds = 3 # ダウンサンプリングの設定
 
-filename_change = "_normal1d"
+filename_change = "_multi_4"
 
 d_num = 3 # 取得するdetailの個数(上から順に{D4,D3...})(2 or 3)
 decompose_level = 5 # 分解レベル

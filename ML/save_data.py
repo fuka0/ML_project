@@ -142,7 +142,7 @@ type_of_movement_2 = "fists_feet"
 current_dir = Path.cwd() # Get the current directory
 eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / task_name_list[task_type]
 
-preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type= "e" # d(DWT), e(Envelope), b(BPF)
 
 d_num = 3 # Number of details to be obtained (from top down {D4,D3...})
 decompose_level = 5 # Decomposition level

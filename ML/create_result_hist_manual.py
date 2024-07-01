@@ -36,8 +36,8 @@ def add_labels(ax):
 # ////////////////////////////////////////////////////////////////////////////////////////
 n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
-ds = 2 # down sampling rate(1/2, 1/3)
-results = {"旧モデル":{"S004" : 76.11, "S018" : 81.67, "S032" : 88.89, "S058" : 66.39, "S079" : 61.11}, "新モデル":{"S004" : 86.67, "S018" : 85.83, "S032" : 90.56, "S058" : 75.00, "S079" : 62.78}}
+ds = 3 # down sampling rate(1/2, 1/3)
+results = {"旧モデル":{"S004" : 59.58, "S018" : 55.42, "S032" : 65.69, "S058" : 51.81, "S079" : 30.00}, "新モデル":{"S004" : 67.22, "S018" : 60.56, "S032" : 71.81, "S058" : 58.06, "S079" : 32.08}}
 
 df = create_dataframe_from_results(results)
 jp_font_path = "C:/Windows/Fonts/meiryo.ttc"
@@ -51,7 +51,7 @@ for ch in number_of_chs:
     save_dir_dict[f"{ch}ch"] = Path(save_dir) / f"{ch}ch"  / "ゼミ" / f"ds_{ds}" / f"{n_class}class"
     os.makedirs(save_dir_dict[f"{ch}ch"], exist_ok=True)
 
-save_path_64ch = save_dir_dict["64ch"] / "result_hist_64ch.png"
+save_path_64ch = save_dir_dict["64ch"] / "result_hist_64ch_4class.png"
 
 # data formatting
 df = df.T.reset_index().melt(id_vars="index", var_name="処理", value_name="Accuracy")
