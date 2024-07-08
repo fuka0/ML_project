@@ -49,15 +49,19 @@ def model_plot(model, model_image_filename):
     plt.imshow(np.array(im))
     # plt.show()
 
+# setting environment variables
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
+os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # for using GPU
+set_seed(93)
 # ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
-# n_class_multi = [2, 3, 4] # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+n_class_multi = [2, 3, 4] # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
 
-n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
-# number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
-number_of_ch = 64 # How many channels to use (64, 38, 28, 19, 18, 12, 6)
+# n_class = 2 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
+number_of_chs = [64, 28] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
+# number_of_ch = 64 # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 movement_types = ["left_right_fist", "fists_feet"] # static variables
 
 extraction_section = True # True is not include rest section, False is include rest section
@@ -66,10 +70,10 @@ baseline_correction = True # baseline_correction(Basically True)
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
-preprocessing_type = "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
-# preprocessing_types = ["d", "e"] # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
-# dss = [2, 3] # down sampling rate(1/2, 1/3)
-ds = 2
+# preprocessing_type = "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
+preprocessing_types = ["d", "e"] # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
+dss = [2, 3] # down sampling rate(1/2, 1/3)
+# ds = 2
 
 d_num = 3 # Number of detail to use(D4,D3...)(2 or 3)
 decompose_level = 5 # Number of decomposition level
@@ -81,287 +85,285 @@ sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross v
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
 
 filename_change = f"_normal1d_batch32"
+for n_class in n_class_multi:
+    for number_of_ch in number_of_chs:
+        for preprocessing_type in preprocessing_types:
+            for ds in dss:
+                ch_idx, extracted_ch = select_electrode(number_of_ch)
+                current_dir = Path.cwd()
+                preprocessing_dir = Preprocessing(preprocessing_type)
 
-ch_idx, extracted_ch = select_electrode(number_of_ch)
-current_dir = Path.cwd()
-preprocessing_dir = Preprocessing(preprocessing_type)
+                columns = make_columns(n_class)
+                subjects_dir = [current_dir/preprocessing_dir/ext_sec/baseline/f"S{i+1:03}" for i in range(104)]
+                subjects_name = [subject_dir.name for subject_dir in subjects_dir]
 
-columns = make_columns(n_class)
-subjects_dir = [current_dir/preprocessing_dir/ext_sec/baseline/f"S{i+1:03}" for i in range(104)]
-subjects_name = [subject_dir.name for subject_dir in subjects_dir]
+                # select traget subject randomly
+                random.seed(22)
+                target_subjects = random.sample(subjects_name, 5)
 
-# select traget subject randomly
-random.seed(22)
-target_subjects = random.sample(subjects_name, 5)
+                details_dir = generate_string(decompose_level, d_num)
 
-details_dir = generate_string(decompose_level, d_num)
+                time_df = pd.DataFrame(index=[target_subjects], columns=["time(s)"])
+                for target_subject in target_subjects:
+                    target_subject_index = target_subjects.index(target_subject)
+                    if n_class > 2:
+                        df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1", "macro_REC", "macro_PRE", "macro_F1"], columns=columns)
+                    else:
+                        df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1"], columns=columns)
+                    if preprocessing_dir == "DWT_data":
+                        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
+                    elif preprocessing_dir == "Envelope_data":
+                        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
+                    elif preprocessing_dir == "BPF_data":
+                        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
 
-# setting environment variables
-os.environ['TF_DETERMINISTIC_OPS'] = '1'
-os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # for using GPU
-set_seed(93)
+                    for data_path in data_paths:
+                        if data_path.parent.name == target_subject:
+                            # data path of target subject
+                            target_subject_data_path = data_path
+                            # remove target subject data path from data_paths
+                            data_paths.remove(data_path)
+                            break
 
-time_df = pd.DataFrame(index=[target_subjects], columns=["time(s)"])
-for target_subject in target_subjects:
-    target_subject_index = target_subjects.index(target_subject)
-    if n_class > 2:
-        df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1", "macro_REC", "macro_PRE", "macro_F1"], columns=columns)
-    else:
-        df = pd.DataFrame(index=[f"target_{target_subject}", "ACC", "PRE", "REC", "F1"], columns=columns)
-    if preprocessing_dir == "DWT_data":
-        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
-    elif preprocessing_dir == "Envelope_data":
-        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
-    elif preprocessing_dir == "BPF_data":
-        data_paths = list((current_dir / "ML" / "ref_data" / preprocessing_dir / task_name_list[task_type] / f"ds_{ds}" ).glob(f"S*/*.npy"))
+                    X, y, subject_ids = load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch)
+                    left_fist_idx = np.where(y == 0)
+                    right_fist_idx = np.where(y == 1)
+                    both_fists = np.where(y == 2)
+                    both_feet = np.where(y == 3)
 
-    for data_path in data_paths:
-        if data_path.parent.name == target_subject:
-            # data path of target subject
-            target_subject_data_path = data_path
-            # remove target subject data path from data_paths
-            data_paths.remove(data_path)
-            break
+                    # Lists to store the accuracy of each fold
+                    train_acc_list = []
+                    val_acc_list = []
 
-    X, y, subject_ids = load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch)
-    left_fist_idx = np.where(y == 0)
-    right_fist_idx = np.where(y == 1)
-    both_fists = np.where(y == 2)
-    both_feet = np.where(y == 3)
+                    # List to store confusion matrices
+                    conf_matrices = []
 
-    # Lists to store the accuracy of each fold
-    train_acc_list = []
-    val_acc_list = []
+                    # List to store recall, precision, F-value
+                    recalls, precisions, f_values = [], [], []
+                    conf_matrices_dict = {}
+                    execute_times = []
+                    # Split the dataset into training and testing sets for each fold
+                    for fold, (train_idxs, test_idxs) in enumerate(sgkf.split(X, y, groups=subject_ids)):
+                        X_train, X_test = X[train_idxs], X[test_idxs]
+                        y_train, y_test = y[train_idxs], y[test_idxs]
 
-    # List to store confusion matrices
-    conf_matrices = []
+                        # generate noise and add to data
+                        noise = generate_noise(X_train, "gauss", seed=22)
+                        X_train_noised = X_train + noise
 
-    # List to store recall, precision, F-value
-    recalls, precisions, f_values = [], [], []
-    conf_matrices_dict = {}
-    execute_times = []
-    # Split the dataset into training and testing sets for each fold
-    for fold, (train_idxs, test_idxs) in enumerate(sgkf.split(X, y, groups=subject_ids)):
-        X_train, X_test = X[train_idxs], X[test_idxs]
-        y_train, y_test = y[train_idxs], y[test_idxs]
+                        # Convert labels to categorical
+                        y_train = to_categorical(y_train, num_classes=n_class)
+                        y_test = to_categorical(y_test, num_classes=n_class)
 
-        # generate noise and add to data
-        noise = generate_noise(X_train, "gauss", seed=22)
-        X_train_noised = X_train + noise
+                        X_train_combined = np.concatenate([X_train, X_train_noised])
+                        y_train_combined = np.concatenate([y_train, y_train])
 
-        # Convert labels to categorical
-        y_train = to_categorical(y_train, num_classes=n_class)
-        y_test = to_categorical(y_test, num_classes=n_class)
+                        batch_size = X_train_combined.shape[0]
+                        timesteps = X_train_combined.shape[1]
+                        input_dim = X_train_combined.shape[2]
+                        input_shape = (X_train_combined.shape[1], X_train_combined.shape[2])
 
-        X_train_combined = np.concatenate([X_train, X_train_noised])
-        y_train_combined = np.concatenate([y_train, y_train])
+                        # difinition of model
+                        # model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
+                        model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
 
-        batch_size = X_train_combined.shape[0]
-        timesteps = X_train_combined.shape[1]
-        input_dim = X_train_combined.shape[2]
-        input_shape = (X_train_combined.shape[1], X_train_combined.shape[2])
+                        # model_plot(model, "model.png")
 
-        # difinition of model
-        model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
-        # model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
+                        log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
+                        model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
+                        os.makedirs(log_dir, exist_ok=True)
+                        os.makedirs(model_dir, exist_ok=True)
 
-        # model_plot(model, "model.png")
+                        callbacks_list = [EarlyStopping(monitor="val_loss", patience=3),
+                                        ModelCheckpoint(f"{model_dir}/target_{target_subject}_model{filename_change}.keras", save_best_only=True, monitor='val_loss', mode='min'),
+                                        CSVLogger(log_dir / f"global_{target_subject}_model{filename_change}.csv", append=False)]
+                        start_time = time.time() # start time
+                        model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks_list)
 
-        log_dir = current_dir / "ML" / "logs" / preprocessing_dir.split("_")[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class" / f"{fold+1}fold"
-        model_dir = "ML" / Path("model_container")/preprocessing_dir.split('_')[0] / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}"/f"{n_class}class" / f"{fold+1}fold"
-        os.makedirs(log_dir, exist_ok=True)
-        os.makedirs(model_dir, exist_ok=True)
+                # //////////Transfer Learning part//////////
+                        group_results = []
+                        # load data of target subject
+                        X_sstl, y_sstl, _ = load_data([target_subject_data_path], movement_types, ch_idx, n_class, number_of_ch)
+                        # Convert labels to categorical
+                        y_sstl = to_categorical(y_sstl, num_classes=n_class)
 
-        callbacks_list = [EarlyStopping(monitor="val_loss", patience=3),
-                        ModelCheckpoint(f"{model_dir}/target_{target_subject}_model{filename_change}.keras", save_best_only=True, monitor='val_loss', mode='min'),
-                        CSVLogger(log_dir / f"global_{target_subject}_model{filename_change}.csv", append=False)]
-        start_time = time.time() # start time
-        model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks_list)
+                        if reduce_data:
+                            # generate random indices for reducing data
+                            indices = np.arange(X_sstl.shape[0])
+                            np.random.shuffle(indices, seed = 22)
+                            indices = indices[:num_samples]
 
-# //////////Transfer Learning part//////////
-        group_results = []
-        # load data of target subject
-        X_sstl, y_sstl, _ = load_data([target_subject_data_path], movement_types, ch_idx, n_class, number_of_ch)
-        # Convert labels to categorical
-        y_sstl = to_categorical(y_sstl, num_classes=n_class)
+                            X_sstl = X_sstl[indices]
+                            y_sstl = y_sstl[indices]
+                        else:
+                            pass
 
-        if reduce_data:
-            # generate random indices for reducing data
-            indices = np.arange(X_sstl.shape[0])
-            np.random.shuffle(indices, seed = 22)
-            indices = indices[:num_samples]
+                        # Lists to store confusion matrices
+                        conf_matrices = []
+                        # List to store recall, precision, F-value
+                        recalls, precisions, f_values = [], [], []
+                        # Split the dataset into training and testing sets for each fold
+                        for train, test in sss_tl.split(X_sstl, y_sstl):
+                            X_train_sstl, X_test_sstl = X_sstl[train], X_sstl[test]
+                            y_train_sstl, y_test_sstl = y_sstl[train], y_sstl[test]
 
-            X_sstl = X_sstl[indices]
-            y_sstl = y_sstl[indices]
-        else:
-            pass
+                            # Validation data for SS-TL
+                            X_train_sstl, X_val, y_train_sstl, y_val = train_test_split(X_train_sstl, y_train_sstl, test_size=0.25, random_state=22, stratify=y_train_sstl)
 
-        # Lists to store confusion matrices
-        conf_matrices = []
-        # List to store recall, precision, F-value
-        recalls, precisions, f_values = [], [], []
-        # Split the dataset into training and testing sets for each fold
-        for train, test in sss_tl.split(X_sstl, y_sstl):
-            X_train_sstl, X_test_sstl = X_sstl[train], X_sstl[test]
-            y_train_sstl, y_test_sstl = y_sstl[train], y_sstl[test]
+                            # Load General model
+                            general_model = load_model(f"{model_dir}/target_{target_subject}_model{filename_change}.keras")
+                            for layer in model.layers:
+                                if layer.name == "L4":
+                                    layer.trainable = True
+                                    break
+                                layer.trainable = False
+                            # # Output the trainable state of each layer
+                            # for layer in general_model.layers:
+                            #     print(layer.name, layer.trainable)
+                            # plot_model(general_model, to_file="SS-TL_model.png", show_shapes=True)
 
-            # Validation data for SS-TL
-            X_train_sstl, X_val, y_train_sstl, y_val = train_test_split(X_train_sstl, y_train_sstl, test_size=0.25, random_state=22, stratify=y_train_sstl)
+                            sstl_callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
+                                                CSVLogger(log_dir / f"target_{target_subject}_model{filename_change}.csv", append=False)]
 
-            # Load General model
-            general_model = load_model(f"{model_dir}/target_{target_subject}_model{filename_change}.keras")
-            for layer in model.layers:
-                if layer.name == "L4":
-                    layer.trainable = True
-                    break
-                layer.trainable = False
-            # # Output the trainable state of each layer
-            # for layer in general_model.layers:
-            #     print(layer.name, layer.trainable)
-            # plot_model(general_model, to_file="SS-TL_model.png", show_shapes=True)
+                            # Transfer Learning
+                            history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=50, batch_size=32, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
 
-            sstl_callbacks_list = [EarlyStopping(monitor="val_loss", patience=4),
-                                CSVLogger(log_dir / f"target_{target_subject}_model{filename_change}.csv", append=False)]
+                            end_time = time.time() # end time
+                            execute_times.append(end_time - start_time)
 
-            # Transfer Learning
-            history_sstl = general_model.fit(X_train_sstl, y_train_sstl, epochs=50, batch_size=32, validation_data=(X_val, y_val), callbacks=sstl_callbacks_list)
+                            y_pred = general_model.predict(X_test_sstl)
 
-            end_time = time.time() # end time
-            execute_times.append(end_time - start_time)
+                            y_pred_classes = np.argmax(y_pred, axis=1)
+                            y_true_classes = np.argmax(y_test_sstl, axis=1)
 
-            y_pred = general_model.predict(X_test_sstl)
+                            # ROC curve
+                            y_true_prob = y_test_sstl[:, 1]
+                            y_pred_prob = y_pred[:, 1]
+                            fpr, tpr, thresholds = roc_curve(y_true_prob, y_pred_prob)
+                            # AUC score
+                            auc = roc_auc_score(y_true_prob, y_pred_prob)
 
-            y_pred_classes = np.argmax(y_pred, axis=1)
-            y_true_classes = np.argmax(y_test_sstl, axis=1)
+                            # Calculate confusion matrix
+                            conf_matrix = confusion_matrix(y_true_classes, y_pred_classes)
+                            conf_matrices.append(conf_matrix)
+                        conf_matrices_dict[f"{fold+1}fold"] = conf_matrices
 
-            # ROC curve
-            y_true_prob = y_test_sstl[:, 1]
-            y_pred_prob = y_pred[:, 1]
-            fpr, tpr, thresholds = roc_curve(y_true_prob, y_pred_prob)
-            # AUC score
-            auc = roc_auc_score(y_true_prob, y_pred_prob)
+                    excute_average_time = round(np.mean(execute_times), 2)
+                    time_df.loc[target_subject] = excute_average_time
 
-            # Calculate confusion matrix
-            conf_matrix = confusion_matrix(y_true_classes, y_pred_classes)
-            conf_matrices.append(conf_matrix)
-        conf_matrices_dict[f"{fold+1}fold"] = conf_matrices
+                    average_conf_matrices = {}
+                    # Calculate average confusion matrix(Transfer Learning part)
+                    for fold, matrices in conf_matrices_dict.items():
+                        average_conf_matrices[fold] = np.mean(matrices, axis=0)
 
-    excute_average_time = round(np.mean(execute_times), 2)
-    time_df.loc[target_subject] = excute_average_time
+                    # Calculate average confusion matrix(General model)
+                    average_conf_matrix = np.mean(list(average_conf_matrices.values()), axis=0)
 
-    average_conf_matrices = {}
-    # Calculate average confusion matrix(Transfer Learning part)
-    for fold, matrices in conf_matrices_dict.items():
-        average_conf_matrices[fold] = np.mean(matrices, axis=0)
+                    n_classes = average_conf_matrix.shape[0]
+                    # variable for macro average
+                    macro_recall = 0
+                    macro_precision = 0
+                    macro_f_value = 0
+                    for i in range(n_classes):
+                        TP = average_conf_matrix[i, i]
+                        FP = sum(average_conf_matrix[:, i]) - TP
+                        FN = sum(average_conf_matrix[i, :]) - TP
+                        TN = sum(sum(average_conf_matrix)) - TP - FP - FN
 
-    # Calculate average confusion matrix(General model)
-    average_conf_matrix = np.mean(list(average_conf_matrices.values()), axis=0)
+                        accuracy = sum(average_conf_matrix.diagonal()) / sum(sum(average_conf_matrix))
+                        recall = TP / (TP + FN)
+                        precision = TP / (TP + FP)
+                        f_value = 2 * precision * recall / (precision + recall)
 
-    n_classes = average_conf_matrix.shape[0]
-    # variable for macro average
-    macro_recall = 0
-    macro_precision = 0
-    macro_f_value = 0
-    for i in range(n_classes):
-        TP = average_conf_matrix[i, i]
-        FP = sum(average_conf_matrix[:, i]) - TP
-        FN = sum(average_conf_matrix[i, :]) - TP
-        TN = sum(sum(average_conf_matrix)) - TP - FP - FN
+                        macro_recall += recall
+                        macro_precision += precision
+                        macro_f_value += f_value
 
-        accuracy = sum(average_conf_matrix.diagonal()) / sum(sum(average_conf_matrix))
-        recall = TP / (TP + FN)
-        precision = TP / (TP + FP)
-        f_value = 2 * precision * recall / (precision + recall)
+                        group_results.append({f"task{i}_ACC": f"{accuracy * 100:.2f}", f"task{i}_PRE": f"{precision * 100:.2f}",
+                                            f"task{i}_REC": f"{recall * 100:.2f}", f"task{i}_F1": f"{f_value * 100:.2f}"})
+                    # Calculate macro average when multi-class classification
+                    if n_classes > 2:
+                        macro_recall = macro_recall / n_classes
+                        macro_precision = macro_precision / n_classes
+                        macro_f_value = macro_f_value / n_classes
 
-        macro_recall += recall
-        macro_precision += precision
-        macro_f_value += f_value
+                        group_results.append({f"macro_PRE": f"{macro_precision * 100:.2f}", f"macro_REC": f"{macro_recall * 100:.2f}",
+                                            f"macro_F1": f"{macro_f_value * 100:.2f}"})
 
-        group_results.append({f"task{i}_ACC": f"{accuracy * 100:.2f}", f"task{i}_PRE": f"{precision * 100:.2f}",
-                            f"task{i}_REC": f"{recall * 100:.2f}", f"task{i}_F1": f"{f_value * 100:.2f}"})
-    # Calculate macro average when multi-class classification
-    if n_classes > 2:
-        macro_recall = macro_recall / n_classes
-        macro_precision = macro_precision / n_classes
-        macro_f_value = macro_f_value / n_classes
+                    # Convert group_results_list to dict
+                    result = defaultdict(float)
+                    for group_result in group_results:
+                        for k, v in group_result.items():
+                            result[k] += float(v)
+                    result = dict(result)
 
-        group_results.append({f"macro_PRE": f"{macro_precision * 100:.2f}", f"macro_REC": f"{macro_recall * 100:.2f}",
-                            f"macro_F1": f"{macro_f_value * 100:.2f}"})
+                    # Caluculate average of evaluation index of each task
+                    movetype = ["left_fist", "right_fist", "both_fists", "both_feet"]
+                    df_value = defaultdict(float)
+                    subjects_num = len([target_subject_data_path])
+                    for key, value in result.items():
+                        if "macro" in key:
+                            pass
+                        else:
+                            key = f"{movetype[int(key.split('_')[0][-1])]}_{key.split('_')[1]}"
+                        df_value[key] = float(f"{value / subjects_num:.2f}")
+                    df_value = dict(df_value)
 
-    # Convert group_results_list to dict
-    result = defaultdict(float)
-    for group_result in group_results:
-        for k, v in group_result.items():
-            result[k] += float(v)
-    result = dict(result)
+                    # Writes the average of the evaluation index of each task to DataFrame
+                    for column in df_value.keys():
+                        if "macro" in column:
+                            df.loc[column] = df_value[column]
+                        else:
+                            split_column = column.split('_')
+                            new_column = f"{split_column[0]}_{split_column[1]}"
+                            df.loc[split_column[2], new_column] = df_value[column]
 
-    # Caluculate average of evaluation index of each task
-    movetype = ["left_fist", "right_fist", "both_fists", "both_feet"]
-    df_value = defaultdict(float)
-    subjects_num = len([target_subject_data_path])
-    for key, value in result.items():
-        if "macro" in key:
-            pass
-        else:
-            key = f"{movetype[int(key.split('_')[0][-1])]}_{key.split('_')[1]}"
-        df_value[key] = float(f"{value / subjects_num:.2f}")
-    df_value = dict(df_value)
+                    # Output average of the evaluation index of each task
+                    if preprocessing_dir == "DWT_data":
+                        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
+                        os.makedirs(save_dir, exist_ok=True)
+                    elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
+                        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
+                        os.makedirs(save_dir, exist_ok=True)
+                    # Save the text file
+                    with open(save_dir / f"roc_auc_data_{target_subject}{filename_change}.txt", "w") as file:
+                        file.write(f"AUC: {auc}\n\n")  # AUC
+                        file.write("FPR\tTPR\tThresholds\n")
+                        for f, t, th in zip(fpr, tpr, thresholds):
+                            file.write(f"{f}\t{t}\t{th}\n")
 
-    # Writes the average of the evaluation index of each task to DataFrame
-    for column in df_value.keys():
-        if "macro" in column:
-            df.loc[column] = df_value[column]
-        else:
-            split_column = column.split('_')
-            new_column = f"{split_column[0]}_{split_column[1]}"
-            df.loc[split_column[2], new_column] = df_value[column]
+                    # Save the xlsx file
+                    save_path = save_dir / f"ave_evalute{filename_change}.xlsx"
+                    time_save_path = save_dir / f"execute_time{filename_change}.xlsx"
+                    sheet_name = "SS-TL_model_evaluate"
+                    if target_subject_index == 0:
+                        df.to_excel(save_path, sheet_name=sheet_name)
+                        time_df.to_excel(time_save_path, sheet_name="time")
+                    else:
+                        with pd.ExcelWriter(save_path, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
+                            df.to_excel(writer, startrow=0, startcol=target_subject_index*(len(columns)+2), sheet_name=sheet_name)
 
-    # Output average of the evaluation index of each task
-    if preprocessing_dir == "DWT_data":
-        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
-        os.makedirs(save_dir, exist_ok=True)
-    elif preprocessing_dir == "Envelope_data" or preprocessing_dir == "BPF_data":
-        save_dir = current_dir / "ML" / "result"/ preprocessing_dir.split("_")[0] / "SS-TL_acc" / f"{number_of_ch}ch" / task_name_list[task_type] / f"ds_{ds}" / f"{n_class}class"
-        os.makedirs(save_dir, exist_ok=True)
-    # Save the text file
-    with open(save_dir / f"roc_auc_data_{target_subject}{filename_change}.txt", "w") as file:
-        file.write(f"AUC: {auc}\n\n")  # AUC
-        file.write("FPR\tTPR\tThresholds\n")
-        for f, t, th in zip(fpr, tpr, thresholds):
-            file.write(f"{f}\t{t}\t{th}\n")
+                        with pd.ExcelWriter(time_save_path, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
+                            time_df.to_excel(writer, startrow=0, sheet_name="time")
 
-    # Save the xlsx file
-    save_path = save_dir / f"ave_evalute{filename_change}.xlsx"
-    time_save_path = save_dir / f"execute_time{filename_change}.xlsx"
-    sheet_name = "SS-TL_model_evaluate"
-    if target_subject_index == 0:
-        df.to_excel(save_path, sheet_name=sheet_name)
-        time_df.to_excel(time_save_path, sheet_name="time")
-    else:
-        with pd.ExcelWriter(save_path, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
-            df.to_excel(writer, startrow=0, startcol=target_subject_index*(len(columns)+2), sheet_name=sheet_name)
+                    # Plot the heatmap of the confusion matrix
+                    plt.figure(figsize=(8, 6))
+                    labels = {
+                        2:["Left Fist", "Right Fist"],
+                        3:["Left Fist", "Right Fist", "Both Fists"],
+                        4:["Left Fist", "Right Fist", "Both Fists", "Both Feet"]
+                    }
+                    sns.heatmap(average_conf_matrix, annot=True, cmap="Blues", fmt=".1f",
+                                xticklabels=labels[n_class],
+                                yticklabels=labels[n_class])
+                    plt.ylabel('True Label')
+                    plt.xlabel('Predicted Label')
+                    plt.title(f'Average Confusion Matrix Heatmap {target_subject}')
+                    plt.savefig(f"{save_dir}/{target_subject}_comf_martrix{filename_change}.png")
+                    plt.close()
+                    plt.clf()
 
-        with pd.ExcelWriter(time_save_path, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
-            time_df.to_excel(writer, startrow=0, sheet_name="time")
-
-    # Plot the heatmap of the confusion matrix
-    plt.figure(figsize=(8, 6))
-    labels = {
-        2:["Left Fist", "Right Fist"],
-        3:["Left Fist", "Right Fist", "Both Fists"],
-        4:["Left Fist", "Right Fist", "Both Fists", "Both Feet"]
-    }
-    sns.heatmap(average_conf_matrix, annot=True, cmap="Blues", fmt=".1f",
-                xticklabels=labels[n_class],
-                yticklabels=labels[n_class])
-    plt.ylabel('True Label')
-    plt.xlabel('Predicted Label')
-    plt.title(f'Average Confusion Matrix Heatmap {target_subject}')
-    plt.savefig(f"{save_dir}/{target_subject}_comf_martrix{filename_change}.png")
-    plt.close()
-    plt.clf()
-
-    pd.DataFrame
+                    pd.DataFrame
 
 message = "機械学習終了!!"
 line_notify(message)
