@@ -24,31 +24,29 @@ def multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_r
     input_layer = Input(shape=input_shape)
 
     # Define four streams with different kernel sizes
-    def create_stream(input_layer, kernel_size):
-        x = Conv1D(127, kernel_size, strides=1, padding='same', activation='relu')(input_layer)
-        x = Conv1D(127, kernel_size, strides=1, padding='same', activation='relu')(x)
-        x = Conv1D(127, kernel_size, strides=2, padding='same', activation='relu')(x)
-        x = Conv1D(64, kernel_size, strides=1, padding='same', activation='relu')(x)
-        x = Conv1D(32, kernel_size, strides=1, padding='same', activation='relu')(x)
+    def create_stream(input_layer, kernel_size, stream_num):
+        x = Conv1D(128, kernel_size, strides=1, padding='same', activation='relu', name=f"L1{stream_num}")(input_layer)
+        x = Conv1D(128, kernel_size, strides=1, padding='same', activation='relu', name=f"L2{stream_num}")(x)
+        x = Conv1D(128, kernel_size, strides=2, padding='same', activation='relu', name=f"L3{stream_num}")(x)
+        x = Conv1D(64, kernel_size, strides=1, padding='same', activation='relu', name=f"L4{stream_num}")(x)
+        x = Conv1D(32, kernel_size, strides=1, padding='same', activation='relu', name=f"L5{stream_num}")(x)
         x = AveragePooling1D()(x)
         x = Flatten()(x)
         return x
 
-    stream0 = create_stream(input_layer, 5)
-    stream1 = create_stream(input_layer, 7)
-    stream2 = create_stream(input_layer, 9)
-    stream3 = create_stream(input_layer, 11)
-    stream4 = create_stream(input_layer, 13)
+    stream1 = create_stream(input_layer, 5, "_1")
+    stream2 = create_stream(input_layer, 7, "_2")
+    stream3 = create_stream(input_layer, 11, "_3")
+    stream4 = create_stream(input_layer, 13, "_4")
 
     # Concatenate all streams
-    # concatenated = concatenate([stream0, stream1, stream2, stream3, stream4])
-    concatenated = concatenate([stream0, stream1, stream3, stream4])
+    concatenated = concatenate([stream1, stream2, stream3, stream4])
 
     # Classifier
     x = Dropout(0.3)(concatenated)
-    x = Dense(120, activation='relu')(x)
+    x = Dense(120, activation='relu', name="L6")(x)
     x = Dropout(0.3)(x)
-    output_layer = Dense(n_class, activation='softmax')(x)
+    output_layer = Dense(n_class, activation='softmax', name="L7")(x)
 
     model = Model(input_layer, output_layer)
     if n_class == 2:

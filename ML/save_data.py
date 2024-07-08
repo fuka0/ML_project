@@ -135,7 +135,7 @@ samplerate = 160 # Sampling frequency
 task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
 
-downsampling_levels = [2] # Downsampling levels
+downsampling_levels = [1, 2, 3] # Downsampling levels
 
 extraction_section = True # True if the extraction section does not include rest, False if it does
 baseline_correction = True # Whether to perform baseline correction
