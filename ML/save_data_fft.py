@@ -5,6 +5,7 @@ import pywt
 import os
 from scipy.signal import resample, butter, filtfilt
 from module1.preprocessing import *
+from scipy.fft import fft, fftfreq
 
 def path_name(type_of_movement):
     if type_of_movement == "left_right_fist":
@@ -39,58 +40,77 @@ def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=
         data_list.append(data)
         label_list.append(labels)
 
-    # when rest is included(not now using)
-    # rest_hand_indices = np.where(all_labels == 3)[0]
-    # if number_of_ch == 64:
-    #     rest_hand_data = all_epoch_data[rest_hand_indices]
-    # else:
-    #     rest_hand_data = all_epoch_data[rest_hand_indices][:, ch_idx, :]
-    # rest_hand_labels = all_labels[rest_hand_indices]
-
-    # data_list.append(rest_hand_data)
-    # label_list.append(rest_hand_labels)
-
-    # Combine data
     combined_data = np.concatenate(data_list, axis=0)
     combined_labels = np.concatenate(label_list, axis=0)
 
     return combined_data, combined_labels
 
-def dwt(sig, level, t, ch_name, wavelet, plot = bool):
-    # coeffs = pywt.wavedec(sig, wavelet, level=level, mode="periodic")
+# FFTを適用して各再構成信号の周波数成分をプロット
+def plot_signal_and_fft(sig, t, title):
+    fig, axs = plt.subplots(2, 1, figsize=(12, 8))
+    # 時間領域信号のプロット
+    axs[0].plot(t, sig)
+    axs[0].set_title(f'{title} - Time Domain')
+    axs[0].set_xlabel('Time')
+    axs[0].set_ylabel('Amplitude')
+
+    # FFTを計算して周波数成分をプロット
+    N = len(sig)
+    T = t[1] - t[0]  # サンプリング間隔
+    yf = fft(sig)
+    xf = fftfreq(N, T)[:N // 2]
+    axs[1].plot(xf, 2.0 / N * np.abs(yf[:N // 2]))
+    axs[1].set_title(f'{title} - Frequency Domain')
+    axs[1].set_xlabel('Frequency (Hz)')
+    axs[1].set_ylabel('Amplitude')
+    plt.tight_layout()
+    plt.show()
+
+def dwt(sig, level, t, ch_name, wavelet, plot=True):
     coeffs = pywt.wavedec(sig, wavelet, level=level)
+    reconstructed_signals = []
+    for i in range(1, level + 1):
+        coeffs_to_reconstruct = [np.zeros_like(c) for c in coeffs]
+        coeffs_to_reconstruct[0] = np.zeros_like(coeffs[0])  # 近似係数はゼロ
+        coeffs_to_reconstruct[i] = coeffs[i]  # i番目の詳細係数のみ使用
+        reconstructed_signal = pywt.waverec(coeffs_to_reconstruct, wavelet)
+        reconstructed_signals.append(reconstructed_signal)
+
+    for i, reconstructed_signal in enumerate(reconstructed_signals, start=1):
+        plot_signal_and_fft(reconstructed_signal, t, f'Detail Coefficient D{level - i + 1}')
+
     nyq_freq = len(coeffs[level])
     sub_band_freq = {}
-    if plot == True:
-        fig, ax = plt.subplots(level+2, 1, figsize=(12, 8))
-        # Plot the original signal
+    if plot:
+        fig, ax = plt.subplots(level + 2, 1, figsize=(12, 8))
+        # 元の信号をプロット
         ax[0].plot(t, sig)
         ax[0].set_title(f'Original Signal for {ch_name}')
-        for i in range(level+1):
+        for i in range(level + 1):
             if i == 0:
-                sub_band_freq[f"A{level-i}"] = f"{0} - {nyq_freq / 2**(level+1)} Hz"
-                # Plot the approximation part
-                ax[i+1].plot(coeffs[i])
-                ax[i+1].set_title(f"A{level}")
+                sub_band_freq[f"A{level - i}"] = f"{0} - {nyq_freq / 2**(level + 1)} Hz"
+                # 近似部分をプロット
+                ax[i + 1].plot(coeffs[i])
+                ax[i + 1].set_title(f"A{level}")
             else:
-                detail_num = level+1-i
+                detail_num = level + 1 - i
                 sub_band_freq[f"D{detail_num}"] = f"{nyq_freq / 2**(detail_num + 1)} - {nyq_freq / 2**(detail_num)} Hz"
-                # Plot the detail part
-                ax[i+1].plot(coeffs[i])
-                ax[i+1].set_title(f'D{level+1-i}')
+                # 詳細部分をプロット
+                ax[i + 1].plot(coeffs[i])
+                ax[i + 1].set_title(f'D{level + 1 - i}')
         print(sub_band_freq)
         plt.tight_layout()
         plt.show()
     else:
         pass
-    return coeffs
+    return coeffs, reconstructed_signals
 
 def Preprocessing(preprocessing_type):
     if preprocessing_type == "d":
         preprocessing_dir = "DWT_data"
     elif preprocessing_type == "e":
         preprocessing_dir = "Envelope_data"
-    elif preprocessing_type == "b" :
+    elif preprocessing_type == "b":
         preprocessing_dir = "BPF_data"
     return preprocessing_dir
 
@@ -119,46 +139,46 @@ def execute_dwt(epoch_data, decompose_level):
 
 def execute_envelope(epoch_data, ds, samplerate=160):
     all_envelope = []
-    filterd_data = filter(epoch_data, ds, samplerate) # BPF
+    filterd_data = filter(epoch_data, ds, samplerate)  # BPF
     envelope_data = extract_envelope(filterd_data, samplerate, 1)
     all_envelope.append(envelope_data)
     return all_envelope
 
 def execute_bpf(epoch_data, ds):
     all_filtered_data = []
-    filtered_data = filter(epoch_data, ds, samplerate) # BPF
-    all_filtered_data.append(filtered_data)  # Add band-pass filtered data to the list
+    filtered_data = filter(epoch_data, ds, samplerate)  # BPF
+    all_filtered_data.append(filtered_data)  # バンドパスフィルタ処理されたデータをリストに追加
     return all_filtered_data
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-samplerate = 160 # Sampling frequency
-task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
+samplerate = 160  # サンプリング周波数
+task_type = 0  # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
 
-downsampling_levels = [2] # Downsampling levels
+downsampling_levels = [2]  # ダウンサンプリングレベル
 
-extraction_section = True # True if the extraction section does not include rest, False if it does
-baseline_correction = True # Whether to perform baseline correction
+extraction_section = True  # 抽出セクションが休息を含まない場合はTrue、含む場合はFalse
+baseline_correction = True  # ベースライン補正を行うかどうか
 ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
-n_class = 4 # Number of classes for classification to be set later, so here it's the maximum value of 4
+n_class = 4  # 分類のためのクラス数（後で設定）
+
 type_of_movement_1 = "left_right_fist"
 type_of_movement_2 = "fists_feet"
 
-current_dir = Path.cwd() # Get the current directory
+current_dir = Path.cwd()  # 現在のディレクトリを取得
 eeg_data_dir = current_dir / "ML" / "ref_data" / "ML_data" / task_name_list[task_type]
 
-preprocessing_type= "d" # d(DWT), e(Envelope), b(BPF)
+preprocessing_type = "d"  # d(DWT), e(Envelope), b(BPF)
 
 extract_cD = ["D5", "D4", "D3"]
+decompose_level = 5  # 分解レベル
 
-decompose_level = 5 # Decomposition level
-
-# Get data path
+# データパスの取得
 subject_dirs = []
 for i in range(104):
-    subject_dirs.extend(eeg_data_dir.glob(f"S{i+1:03}"))
+    subject_dirs.extend(eeg_data_dir.glob(f"S{i + 1:03}"))
 
 ch_idx, extracted_ch = select_electrode()
 
@@ -167,9 +187,9 @@ file_name_2 = path_name(type_of_movement_2)
 
 for subject_dir in subject_dirs:
     all_data_list = []
-    subject_id = subject_dir.name # Subject name
+    subject_id = subject_dir.name  # 被験者名
 
-    # Combine paths and load data
+    # パスを結合してデータをロード
     data_1 = np.load(subject_dir / file_name_1)
     data_2 = np.load(subject_dir / file_name_2)
 
@@ -184,11 +204,11 @@ for subject_dir in subject_dirs:
                 if ds == 1:
                     pass
                 else:
-                    # Apply anti-aliasing filter
-                    cutoff = samplerate // (2 * ds)  # Set cutoff frequency
+                    # アンチエイリアシングフィルタを適用
+                    cutoff = samplerate // (2 * ds)  # カットオフ周波数の設定
                     filtered_epoch_data = apply_antialiasing_filter(epoch_data, cutoff, samplerate)
-                    epoch_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1) # Downsample the data
-                t = np.linspace(0, epoch_data.shape[1]/(samplerate/ds), epoch_data.shape[1])
+                    epoch_data = resample(filtered_epoch_data, filtered_epoch_data.shape[1] // ds, axis=1)  # データをダウンサンプリング
+                t = np.linspace(0, epoch_data.shape[1] / (samplerate / ds), epoch_data.shape[1])
 
                 if preprocessing_dir == "DWT_data":
                     all_data, concatenated_string = execute_dwt(epoch_data, decompose_level)
@@ -197,10 +217,10 @@ for subject_dir in subject_dirs:
                 elif preprocessing_dir == "BPF_data":
                     all_data = execute_bpf(epoch_data, ds)
                 all_data_list.extend(all_data)
-            all_preprocessing_data = np.array(all_data_list).transpose(0,2,1) # Reshape to (number of trials, number of sample points, number of channels)
+            all_preprocessing_data = np.array(all_data_list).transpose(0, 2, 1)  # 形状を (number of trials, number of sample points, number of channels) に変換
             all_data_list = []
 
-            # Add data and labels for each movement state to the dictionary
+            # 各動作状態のデータとラベルを辞書に追加
             all_data_dict[movement_type] = {"epoch_data": all_preprocessing_data, "labels": y}
 
         if preprocessing_dir == "DWT_data":
@@ -211,4 +231,4 @@ for subject_dir in subject_dirs:
             save_dir = current_dir / "ML" / "ref_data" / "BPF_data" / task_name_list[task_type] / f"ds_{ds}" / subject_id
         os.makedirs(save_dir, exist_ok=True)
         output_file = save_dir / f"{preprocessing_dir}.npy"
-        np.save(output_file, all_data_dict)
+        # np.save(output_file, all_data_dict)
