@@ -2,7 +2,7 @@ import numpy as np
 from scipy.signal import butter,filtfilt,hilbert
 
 def filter(data, ds, sample_rate, order=6):
-    if ds == 2:
+    if ds == 1 or ds == 2:
         lowcut = 8
         highcut = 30
         nyquist = 0.5 * sample_rate

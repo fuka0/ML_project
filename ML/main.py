@@ -16,6 +16,12 @@ from collections import defaultdict
 import tensorflow as tf
 import time
 from PIL import Image
+from itertools import combinations
+
+all_ch = ['Fc5', 'Fc3', 'Fc1', 'Fcz', 'Fc2', 'Fc4', 'Fc6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6','Cp5', 'Cp3', 'Cp1',
+        'Cpz', 'Cp2', 'Cp4', 'Cp6', 'Fp1', 'Fpz', 'Fp2', 'Af7', 'Af3', 'Afz', 'Af4','Af8', 'F7', 'F5', 'F3', 'F1','Fz',
+        'F2', 'F4','F6', 'F8', 'Ft7', 'Ft8', 'T7', 'T8','T9', 'T10', 'Tp7', 'Tp8', 'P7', 'P5', 'P3', 'P1','Pz','P2',
+        'P4','P6', 'P8', 'Po7','Po3', 'Poz', 'Po4', 'Po8', 'O1', 'Oz', 'O2', 'Iz']
 
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -50,6 +56,61 @@ def model_plot(model, model_image_filename):
     plt.imshow(np.array(im))
     # plt.show()
 
+def generate_artificial_eeg(data, labels, task_labels, num_trials, num_artificial):
+    # initialize list to store artificial eeg
+    artificial_eegs = []
+    artificial_labels = []
+
+    for task_label in task_labels:
+        # get the indices of trials corresponding to the specified task label
+        task_indices = [i for i, label in enumerate(labels) if label == task_label]
+
+        # make all possible combinations of trials
+        all_combinations = list(combinations(task_indices, num_trials))
+
+        # check if the number of combinations is less than the number of artificial eeg to generate
+        if num_artificial > len(all_combinations):
+            raise ValueError(f"生成する人工脳波の数が多すぎます。タスク {task_label} には {len(all_combinations)} 通りの試行の組み合わせしかありません。")
+
+        # randomly select the specified number of combinations
+        selected_combinations = random.sample(all_combinations, num_artificial)
+
+        # get the number of channels and samples
+        num_channels = data.shape[2]
+        num_samples = data.shape[1]
+
+        # initialize array to store artificial eeg
+        artificial_eeg = np.zeros((num_artificial, num_samples, num_channels))
+
+        # generate each artificial eeg
+        for i, combination in enumerate(selected_combinations):
+            # generate superimposed data for each channel
+            for channel in range(num_channels):
+                # initialize the data to be superimposed
+                superimposed_data = np.zeros(num_samples)
+
+                # combine the data of the selected trials
+                for idx in combination:
+                    superimposed_data += data[idx, :, channel]
+
+                # standardize after superimposition
+                mean = np.mean(superimposed_data)
+                std = np.std(superimposed_data)
+                if std != 0:
+                    superimposed_data = (superimposed_data - mean) / std
+
+                # store in artificial eeg
+                artificial_eeg[i, :, channel] = superimposed_data
+
+        # append the generated artificial eeg and its label to the list
+        artificial_eegs.append(artificial_eeg)
+        artificial_labels.extend([task_label] * num_artificial)
+
+    # convert list to numpy array
+    artificial_eegs = np.concatenate(artificial_eegs, axis=0)
+
+    return artificial_eegs, np.array(artificial_labels)
+
 # setting environment variables
 os.environ['TF_DETERMINISTIC_OPS'] = '1'
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # for using GPU
@@ -70,13 +131,18 @@ ext_sec = "move_only" if extraction_section else "rest_move"
 baseline = "baseline_true" if baseline_correction else "baseline_false"
 
 preprocessing_type = "d" # the kind of preprocessing method{d(DWT), e(Envelope), b(BPF)}
-num_ds = [1, 2, 3] # down sampling rate(1/2, 1/3)
+num_ds = [3] # down sampling rate(1/2, 1/3)
 
 extract_cD = ["D5", "D4", "D3"]
 cD_index, concatenated_string = define_cD_index(extract_cD)
 
 reduce_data = False # data reduction(True or False)
 num_samples = 90  # Number of samples to use when reducing data(default=90)
+
+# paramete for artificial eeg
+execute_artificial_eeg = 1 # if generate artificial eeg, set 1
+num_trials = 5  # number of trials to combine
+num_artificial = 10  # numebr of artificial eeg to generate(by each task)
 
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
@@ -124,7 +190,6 @@ for n_class in num_class:
                     break
 
             X, y, subject_ids = load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch)
-            # print(X.shape)
             left_fist_idx = np.where(y == 0)
             right_fist_idx = np.where(y == 1)
             both_fists = np.where(y == 2)
@@ -182,8 +247,22 @@ for n_class in num_class:
                 group_results = []
                 # load data of target subject
                 X_sstl, y_sstl, _ = load_data([target_subject_data_path], movement_types, ch_idx, n_class, number_of_ch)
+
+                if execute_artificial_eeg == True:
+                    # generate artificial eeg
+                    combined_data = X_sstl.copy()
+                    combined_labels = y_sstl.copy()
+
+                    task_labels = list(range(n_class))
+                    artificial_eeg, artificial_labels = generate_artificial_eeg(X_sstl, y_sstl, task_labels, num_trials, num_artificial)
+
+                    combined_data = np.concatenate((combined_data, artificial_eeg), axis=0)
+                    combined_labels = np.concatenate((combined_labels, artificial_labels))
+                else:
+                    pass
+
                 # Convert labels to categorical
-                y_sstl = to_categorical(y_sstl, num_classes=n_class)
+                combined_labels = to_categorical(combined_labels, num_classes=n_class)
 
                 if reduce_data:
                     # generate random indices for reducing data
@@ -201,9 +280,9 @@ for n_class in num_class:
                 # List to store recall, precision, F-value
                 recalls, precisions, f_values = [], [], []
                 # Split the dataset into training and testing sets for each fold
-                for train, test in sss_tl.split(X_sstl, y_sstl):
-                    X_train_sstl, X_test_sstl = X_sstl[train], X_sstl[test]
-                    y_train_sstl, y_test_sstl = y_sstl[train], y_sstl[test]
+                for train, test in sss_tl.split(combined_data, combined_labels):
+                    X_train_sstl, X_test_sstl = combined_data[train], combined_data[test]
+                    y_train_sstl, y_test_sstl = combined_labels[train], combined_labels[test]
 
                     # Validation data for SS-TL
                     X_train_sstl, X_val, y_train_sstl, y_val = train_test_split(X_train_sstl, y_train_sstl, test_size=0.25, random_state=22, stratify=y_train_sstl)
