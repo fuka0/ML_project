@@ -22,7 +22,7 @@ def define_cD_index(extract_cD):
     concatenated_string = "-".join(extract_cD)
     return cD_index, concatenated_string
 # ////////////////////////////////////////////////////////////////////////////////////////
-num_class = [2,3,4] # 何クラス分類か(左手と右手なら2, 両手も含むなら3, 両足も含むなら4)
+num_class = [2, 3, 4] # 何クラス分類か(左手と右手なら2, 両手も含むなら3, 両足も含むなら4)
 number_of_ch = 64 # 使用するチャンネル数(64, 38, 19, 8)
 movement_types = ["left_right_fist", "fists_feet"] # 運動タイプを定義
 
@@ -41,7 +41,7 @@ cD_index, concatenated_string = define_cD_index(extract_cD)
 preprocessing_dir = Preprocessing(preprocessing_type)
 ds = 3 # ダウンサンプリングの設定
 
-filename_change = "_multi_4_L4"
+filename_change = "_multi_4_L4_300_trial5"
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 

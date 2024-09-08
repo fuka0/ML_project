@@ -37,10 +37,16 @@ def add_labels(ax):
 n_class = 4 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 
+# results = {
+#     "ds=1/1": {"S004": 27.50, "S018": 44.17, "S032": 29.58, "S058": 32.92, "S079": 27.64},
+#     "ds=1/2": {"S004": 54.03, "S018": 48.47, "S032": 60.28, "S058": 48.06, "S079": 32.36},
+#     "ds=1/3": {"S004": 65.69, "S018": 58.89, "S032": 73.33, "S058": 56.39, "S079": 34.31},
+# }
+
 results = {
-    "ds=1": {"S004": 27.50, "S018": 44.17, "S032": 29.58, "S058": 32.92, "S079": 27.64},
-    "ds=2": {"S004": 54.03, "S018": 48.47, "S032": 60.28, "S058": 48.06, "S079": 32.36},
-    "ds=3": {"S004": 65.69, "S018": 58.89, "S032": 73.33, "S058": 56.39, "S079": 34.31},
+    "2class classification(L, R)": {"0": 67.78, "50": 87.76, "100": 91.03, "150": 95.13, "200": 95.71, "250":96.74, "300": 97.43},
+    "3class classification(L, R, B)": {"0": 43.89, "50": 70.09, "100": 82.07, "150": 88.03, "200": 91.46, "250":94.32, "300": 95.36},
+    "4class classification(L, R, B, F)": {"0": 34.31, "50": 67.37, "100": 79.96, "150": 85.58, "200": 89.52, "250":93.41, "300": 93.71}
 }
 
 df = create_dataframe_from_results(results)
@@ -55,7 +61,7 @@ for ch in number_of_chs:
     save_dir_dict[f"{ch}ch"] = Path(save_dir) / "multi_stream_1d_5-7-11-13" / f"{ch}ch"  / "D5-D4-D3" / f"{n_class}class"
     os.makedirs(save_dir_dict[f"{ch}ch"], exist_ok=True)
 
-save_path_64ch = save_dir_dict[f"{ch}ch"] / "result_hist_test.png"
+save_path_64ch = save_dir_dict[f"{ch}ch"] / f"result_hist_{n_class}.png"
 
 # data formatting
 df = df.T.reset_index().melt(id_vars="index", var_name="処理", value_name="Accuracy")
@@ -80,7 +86,7 @@ plt.xlabel("Subjects", fontproperties=en_font, fontsize=label_fontsize)
 # plt.ylabel("Accuracy [%]", fontproperties=en_font, fontsize=label_fontsize)
 plt.ylabel("Accuracy [%]", fontproperties=en_font, fontsize=label_fontsize)
 
-leg = plt.legend(loc="upper right", prop={"size": legend_fontsize}, frameon=False)
+leg = plt.legend(loc="upper left", prop={"size": legend_fontsize}, frameon=False)
 
 
 # legend font properties
@@ -108,5 +114,5 @@ ax.set_yticklabels([f"{int(y)}" for y in yticks], fontproperties=en_font, fontsi
 plt.tight_layout()
 plt.show()
 # plt.savefig(save_path_64ch)
-plt.close()
-plt.clf()
+# plt.clf()
+# plt.close()
