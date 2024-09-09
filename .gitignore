@@ -5,4 +5,5 @@ ML/result/
 __pycache__/
 *.pyc
 ML/result_hist/
+ML/result_artificial_plot/
 

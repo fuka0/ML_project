@@ -97,8 +97,12 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
                     else:
                         pass
     # データを結合
-        combined_data = np.concatenate(data_list, axis=0)
-        combined_labels = np.concatenate(label_list, axis=0)
+        min_length = min([data.shape[1] for data in data_list])
+        trimmed_data_list = [data[:, :min_length, :] for data in data_list]
+        trimmed_label_list = [label[:min_length] for label in label_list]
+
+        combined_data = np.concatenate(trimmed_data_list, axis=0)
+        combined_labels = np.concatenate(trimmed_label_list, axis=0)
     return combined_data, combined_labels, subject_ids
 
 def make_columns_subject(n_class, columns_li_binary, columns_li_multi):
