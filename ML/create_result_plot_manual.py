@@ -35,7 +35,7 @@ def add_labels(ax):
                     fontsize=value_label_fontsize)
 # ////////////////////////////////////////////////////////////////////////////////////////
 number_of_chs = [64] # How many channels to use
-subject = "S079" # S004, S018, S032, S058, S079
+subject = "S004" # S004, S018, S032, S058, S079
 
 if subject == "S004":
     # S004

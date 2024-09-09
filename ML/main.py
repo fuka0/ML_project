@@ -263,21 +263,6 @@ for num_artificial in num_artificials:
                         combined_labels = np.concatenate((combined_labels, artificial_labels))
                     else:
                         pass
-                    plt.figure(figsize = (15, 6))
-                    # colors = ["navy", "teal", "darkorange", "darkviolet", "maroon"]
-                    plt.rcParams['xtick.direction'] = 'in'#x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-                    plt.rcParams['ytick.direction'] = 'in'#y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-                    plt.rcParams['xtick.major.width'] = 1.0#x軸主目盛り線の線幅
-                    plt.rcParams['ytick.major.width'] = 1.0#y軸主目盛り線の線幅
-                    plt.rcParams['font.size'] = 14 #フォントの大きさ
-                    plt.rcParams['axes.linewidth'] = 1.0# 軸の線幅edge linewidth。囲みの太さ
-                    plt.locator_params(axis='y',nbins=6)
-                    plt.gca().yaxis.set_major_formatter(plt.FormatStrFormatter('%.1f'))
-                    plt.tight_layout()
-                    plt.plot(combined_data[180, :, 0], color = "dodgerblue")
-                    plt.savefig(f"C:/Users/Fuka/Desktop/fig6.png")
-                    plt.clf()
-                    plt.close()
                     # Convert labels to categorical
                     combined_labels = to_categorical(combined_labels, num_classes=n_class)
 
