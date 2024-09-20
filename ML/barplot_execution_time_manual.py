@@ -37,13 +37,19 @@ def add_labels(ax):
 n_class = 4 # How many class to classify (2 for left and right hands, 3 add for both hands, 4 add for both feet)
 number_of_chs = [64] # How many channels to use (64, 38, 28, 19, 18, 12, 6)
 
-results = {
-    "2class classification(L, R)": {"0": 67.78, "50": 87.76, "100": 91.03, "150": 95.13, "200": 95.71, "250":96.74, "300": 97.43},
-    "3class classification(L, R, B)": {"0": 43.89, "50": 70.09, "100": 82.07, "150": 88.03, "200": 91.46, "250":94.32, "300": 95.36},
-    "4class classification(L, R, B, F)": {"0": 34.31, "50": 67.37, "100": 79.96, "150": 85.58, "200": 89.52, "250":93.41, "300": 93.71}
+results_S032 = {
+    "2class classification(L, R)": {"0": 85.29, "50": 61.24, "100": 89.49, "150": 104.68, "200": 92.57, "250": 102.16, "300": 98.13},
+    "3class classification(L, R, B)": {"0": 128.94, "50": 132.41, "100": 147.58, "150": 140.83, "200": 133.60, "250": 141.77, "300": 163.72},
+    "4class classification(L, R, B, F)": {"0": 170.13, "50": 164.12, "100": 215.26, "150": 189.24, "200": 202.30, "250": 210.75, "300": 222.90}
 }
 
-df = create_dataframe_from_results(results)
+results_S079 = {
+    "2class classification(L, R)": {"0": 74.77, "50": 70.69, "100": 76.03, "150": 90.31, "200": 88.63, "250": 91.97, "300": 94.94},
+    "3class classification(L, R, B)": {"0": 131.35, "50": 132.95, "100": 134.37, "150": 141.06, "200": 162.67, "250": 155.95, "300": 163.46},
+    "4class classification(L, R, B, F)": {"0": 169.14, "50": 185.35, "100": 193.60, "150": 199.95, "200": 209.87, "250": 199.50, "300": 214.56}
+}
+
+df = create_dataframe_from_results(results_S032)
 jp_font_path = "C:/Windows/Fonts/meiryo.ttc"
 en_font_path = "C:/Windows/Fonts/times.ttf"
 jp_font = fm.FontProperties(fname=jp_font_path)
@@ -58,17 +64,17 @@ for ch in number_of_chs:
 save_path_64ch = save_dir_dict[f"{ch}ch"] / f"result_hist_{n_class}.png"
 
 # data formatting
-df = df.T.reset_index().melt(id_vars="index", var_name="処理", value_name="Accuracy")
+df = df.T.reset_index().melt(id_vars="index", var_name="execute_time", value_name="time")
 bar_width = 0.23  # width of the bar
 
 # plot settings(64ch)
 plt.figure(figsize=(10, 6))
-plt.ylim(0, 100)
+plt.ylim(50, 230)
 label_fontsize = 18
 value_label_fontsize = 15
 legend_fontsize = 15
 
-ax_64ch = sns.barplot(x="index", y="Accuracy", hue="処理", data=df, palette=["blue", "red", "green"], dodge=True)
+ax_64ch = sns.barplot(x="index", y="time", hue="execute_time", data=df, dodge=True)
 
 # bar position adjustment
 for i, bar in enumerate(ax_64ch.patches):
@@ -76,8 +82,8 @@ for i, bar in enumerate(ax_64ch.patches):
 
 
 # add labels
-plt.xlabel("Subjects", fontproperties=en_font, fontsize=label_fontsize)
-plt.ylabel("Accuracy [%]", fontproperties=en_font, fontsize=label_fontsize)
+plt.xlabel("Amount of artificial EEG data", fontproperties=en_font, fontsize=label_fontsize)
+plt.ylabel("execution time [s]", fontproperties=en_font, fontsize=label_fontsize)
 
 leg = plt.legend(loc="upper left", prop={"size": legend_fontsize}, frameon=False)
 
