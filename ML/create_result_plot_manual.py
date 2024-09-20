@@ -93,13 +93,13 @@ bar_width = 0.23  # width of the bar
 
 # plot settings(64ch)
 plt.figure(figsize=(10, 6))
-plt.ylim(20, 100)
+plt.ylim(30, 100)
 label_fontsize = 18
 value_label_fontsize = 15
 legend_fontsize = 15
 
 ax_64ch = sns.lineplot(x="index", y="Accuracy", hue="Number of classification class", data=df, palette=["steelblue", "tomato", "forestgreen"],
-                    markers=["o", "s", "D"], dashes=False, style="Number of classification class", legend="full")
+                    markers=["o", "s", "D"], dashes=False, style="Number of classification class", legend="full", linewidth=2)
 
 # add labels
 plt.xlabel("Amount of artificial EEG data", fontproperties=en_font, fontsize=label_fontsize)
@@ -116,6 +116,8 @@ leg.get_title().set_fontsize(legend_fontsize)
 
 ax = plt.gca()
 add_labels(ax)
+
+plt.axhline(y=95, color="k", linestyle="--",linewidth=1.5, zorder=1)
 
 # add grid lines
 plt.grid(axis="y", color="black")

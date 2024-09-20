@@ -140,9 +140,9 @@ reduce_data = False # data reduction(True or False)
 num_samples = 90  # Number of samples to use when reducing data(default=90)
 
 # paramete for artificial eeg
-execute_artificial_eeg = 1 # if generate artificial eeg, set 1
+execute_artificial_eeg = 0 # if generate artificial eeg, set 1
 num_trials = 5  # number of trials to combine
-num_artificials = [150, 200, 250, 300]  # numebr of artificial eeg to generate(by each task)
+num_artificials = [50, 100, 150, 200, 250, 300]  # numebr of artificial eeg to generate(by each task)
 
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
@@ -152,7 +152,7 @@ current_dir = Path.cwd()
 preprocessing_dir = Preprocessing(preprocessing_type)
 
 for num_artificial in num_artificials:
-    filename_change = f"_multi_4_L4_{num_artificial}_trial{num_trials}"
+    filename_change = [f"_multi_4_L4_{num_artificial}_trial{num_trials}" if execute_artificial_eeg == 1 else "_multi_4_L4"][0]
     for n_class in num_class:
         for ds in num_ds:
             columns = make_columns(n_class)
