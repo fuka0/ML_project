@@ -140,21 +140,19 @@ reduce_data = False # data reduction(True or False)
 num_samples = 90  # Number of samples to use when reducing data(default=90)
 
 # paramete for artificial eeg
-execute_artificial_eeg = 1 # if generate artificial eeg, set 1
+execute_artificial_eeg = 0 # if generate artificial eeg, set 1
 num_trials = 5  # number of trials to combine
-num_artificials = [150, 200, 250, 300]  # numebr of artificial eeg to generate(by each task)
+num_artificials = [50, 100, 150, 200, 250, 300]  # numebr of artificial eeg to generate(by each task)
 
 sgkf = StratifiedGroupKFold(n_splits=5, random_state=22, shuffle=True) # cross validation for General model
 sss_tl = StratifiedShuffleSplit(n_splits=4, random_state=22, test_size=0.2) # cross validation for Transfer model
-
-# filename_change = f"_multi_4_L4_{num_artificial}_trial{num_trials}"
 
 ch_idx, extracted_ch = select_electrode(number_of_ch)
 current_dir = Path.cwd()
 preprocessing_dir = Preprocessing(preprocessing_type)
 
 for num_artificial in num_artificials:
-    filename_change = f"_multi_4_L4_{num_artificial}_trial{num_trials}"
+    filename_change = [f"_multi_4_L4_{num_artificial}_trial{num_trials}" if execute_artificial_eeg == 1 else "_multi_4_L4"][0]
     for n_class in num_class:
         for ds in num_ds:
             columns = make_columns(n_class)
@@ -231,7 +229,6 @@ for num_artificial in num_artificials:
                     input_shape = (X_train_combined.shape[1], X_train_combined.shape[2])
 
                     # difinition of model
-                    # model = one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
                     model = multi_stream_1D_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.001)
                     # model_plot(model, "model.png")
 
@@ -244,7 +241,7 @@ for num_artificial in num_artificials:
                                     ModelCheckpoint(f"{model_dir}/target_{target_subject}_model{filename_change}.keras", save_best_only=True, monitor='val_loss', mode='min'),
                                     CSVLogger(log_dir / f"global_{target_subject}_model{filename_change}.csv", append=False)]
                     start_time = time.time() # start time
-                    # model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks_list)
+                    model.fit(X_train_combined, y_train_combined, epochs=100, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks_list)
 
             # //////////Transfer Learning part//////////
                     group_results = []
@@ -263,21 +260,6 @@ for num_artificial in num_artificials:
                         combined_labels = np.concatenate((combined_labels, artificial_labels))
                     else:
                         pass
-                    plt.figure(figsize = (15, 6))
-                    # colors = ["navy", "teal", "darkorange", "darkviolet", "maroon"]
-                    plt.rcParams['xtick.direction'] = 'in'#x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-                    plt.rcParams['ytick.direction'] = 'in'#y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-                    plt.rcParams['xtick.major.width'] = 1.0#x軸主目盛り線の線幅
-                    plt.rcParams['ytick.major.width'] = 1.0#y軸主目盛り線の線幅
-                    plt.rcParams['font.size'] = 14 #フォントの大きさ
-                    plt.rcParams['axes.linewidth'] = 1.0# 軸の線幅edge linewidth。囲みの太さ
-                    plt.locator_params(axis='y',nbins=6)
-                    plt.gca().yaxis.set_major_formatter(plt.FormatStrFormatter('%.1f'))
-                    plt.tight_layout()
-                    plt.plot(combined_data[180, :, 0], color = "dodgerblue")
-                    plt.savefig(f"C:/Users/Fuka/Desktop/fig6.png")
-                    plt.clf()
-                    plt.close()
                     # Convert labels to categorical
                     combined_labels = to_categorical(combined_labels, num_classes=n_class)
 
@@ -339,7 +321,8 @@ for num_artificial in num_artificials:
 
                         # Calculate confusion matrix
                         conf_matrix = confusion_matrix(y_true_classes, y_pred_classes)
-                        conf_matrices.append(conf_matrix)
+                        conf_matrix_normalized = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis]
+                        conf_matrices.append(conf_matrix_normalized)
                     conf_matrices_dict[f"{fold+1}fold"] = conf_matrices
 
                 excute_average_time = round(np.mean(execute_times), 2)
