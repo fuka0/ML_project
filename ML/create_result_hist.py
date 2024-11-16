@@ -30,15 +30,25 @@ def create_dataframe_from_results(results):
     df = pd.DataFrame(results).T
     return df
 
-# 値ラベルの追加
+
 def add_labels(ax):
     for p in ax.patches:
         ax.annotate(format(p.get_height(), ".2f"),
-                    (p.get_x() + p.get_width() / 2., p.get_height()),
-                    ha = "center", va = "center",
-                    xytext = (0, 10), textcoords = "offset points",
+                    (p.get_x() + p.get_width() / 2., p.get_height() + 0.05),  # ラベルを少し上に移動
+                    ha="center", va="bottom",
+                    fontsize=value_label_fontsize,
                     fontproperties=en_font,
-                    fontsize=value_label_fontsize)
+                    rotation=23)  # ラベルを少し斜めに配置
+
+# 値ラベルの追加
+# def add_labels(ax):
+#     for p in ax.patches:
+#         ax.annotate(format(p.get_height(), ".2f"),
+#                     (p.get_x() + p.get_width() / 2., p.get_height()),
+#                     ha = "center", va = "center",
+#                     xytext = (0, 10), textcoords = "offset points",
+#                     fontproperties=en_font,
+#                     fontsize=value_label_fontsize)
 
 def result_indexses(num_class, subj):
     index_mapping = {
@@ -126,15 +136,15 @@ for num_class in num_classes:
     # data formatting
     df = df.T.reset_index().melt(id_vars="index", var_name="dawn sampling level", value_name="Accuracy")
     df["Accuracy"] = pd.to_numeric(df["Accuracy"], errors="coerce")
-    bar_width = 0.16  # width of the bar
+    bar_width = 0.20  # width of the bar
     x = np.arange(len(subjects))
 
     # plot settings
     plt.figure(figsize=(10, 6))
     plt.ylim(0, 100)
-    label_fontsize = 25
-    value_label_fontsize = 18
-    legend_fontsize = 15
+    label_fontsize = 30
+    value_label_fontsize = 17
+    legend_fontsize = 16
 
     ax = sns.barplot(x="index", y="Accuracy", palette=["b", "r", "g"], hue="dawn sampling level", data=df, dodge=True)
 
@@ -147,7 +157,7 @@ for num_class in num_classes:
     plt.xlabel("Subjects", fontproperties=en_font, fontsize=label_fontsize)
     plt.ylabel("Accuracy [%]", fontproperties=en_font, fontsize=label_fontsize)
 
-    leg = plt.legend(loc="upper right", prop={"size": legend_fontsize}, frameon=False)
+    leg = plt.legend(loc="upper right", prop={"size": legend_fontsize}, frameon=True, bbox_to_anchor=(1.0, 1.02))
 
 
     # legend font properties

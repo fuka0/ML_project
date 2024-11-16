@@ -116,7 +116,7 @@ base_dir = current_dir
 subjects = ["S004", "S018", "S032", "S058", "S079"] # S004, S018, S032, S058, S079
 
 # difine directory path settings////////////////////////////
-analyzed_interval = "1.0s" # 0.5s, 1.0s, 3.0s
+analyzed_interval = "3.0s" # 0.5s, 1.0s, 3.0s
 preprocessing = "DWT"
 number_of_chs = [64] # How many channels to use
 task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
@@ -153,9 +153,8 @@ for number_of_ch in number_of_chs:
         # plot settings(64ch)
         plt.figure(figsize=(10, 6))
         plt.ylim(30, 100)
-        label_fontsize = 18
-        value_label_fontsize = 15
-        legend_fontsize = 15
+        label_fontsize = 30
+        legend_fontsize = 18
 
         ax_64ch = sns.lineplot(x="index", y="Accuracy", hue="Number of classification class", data=df, palette=["steelblue", "tomato", "forestgreen"],
                             markers=["o", "s", "D"], dashes=False, style="Number of classification class", legend="full", linewidth=2)
