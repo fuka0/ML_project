@@ -149,7 +149,6 @@ for number_of_ch in number_of_chs:
         # data formatting
         df = df.T.reset_index().melt(id_vars="index", var_name="Number of classification class", value_name="Accuracy")
         df["Accuracy"] = pd.to_numeric(df["Accuracy"], errors="coerce")
-        bar_width = 0.23  # width of the bar
 
         # plot settings(64ch)
         plt.figure(figsize=(10, 6))
