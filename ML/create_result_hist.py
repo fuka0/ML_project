@@ -18,13 +18,6 @@ def get_subject_name(result_file):
     subject_names.sort()
     return subject_names, subject_name_row
 
-# def decide_index(parts):
-#     preprocessing = next((part for part in parts if part == "DWT" or part == "Envelope"), None)
-#     if preprocessing == "DWT":
-#         index_name = "新処理"
-#     elif preprocessing == "Envelope":
-#         index_name = "旧処理"
-#     return index_name
 
 def create_dataframe_from_results(results):
     df = pd.DataFrame(results).T
@@ -40,15 +33,6 @@ def add_labels(ax):
                     fontproperties=en_font,
                     rotation=23)  # ラベルを少し斜めに配置
 
-# 値ラベルの追加
-# def add_labels(ax):
-#     for p in ax.patches:
-#         ax.annotate(format(p.get_height(), ".2f"),
-#                     (p.get_x() + p.get_width() / 2., p.get_height()),
-#                     ha = "center", va = "center",
-#                     xytext = (0, 10), textcoords = "offset points",
-#                     fontproperties=en_font,
-#                     fontsize=value_label_fontsize)
 
 def result_indexses(num_class, subj):
     index_mapping = {

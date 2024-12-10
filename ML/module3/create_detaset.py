@@ -44,6 +44,7 @@ def select_electrode(number_of_ch=int):
             extracted_ch.append(all_ch[i])
     return ch_idx, extracted_ch
 
+
 def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
     scaler = StandardScaler()
     data_list = []
@@ -105,6 +106,7 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
         combined_labels = np.concatenate(trimmed_label_list, axis=0)
     return combined_data, combined_labels, subject_ids
 
+
 def make_columns_subject(n_class, columns_li_binary, columns_li_multi):
     task_str_li = []
     columns = []
@@ -123,6 +125,7 @@ def make_columns_subject(n_class, columns_li_binary, columns_li_multi):
                 columns.append(f"{task_str}_{column}")
     return columns
 
+
 def make_columns(n_class):
     if n_class == 2:
         columns = ["left_fist", "right_fist"]
@@ -131,6 +134,7 @@ def make_columns(n_class):
     else:
         columns = ["left_fist", "right_fist", "both_fists", "both_feet"]
     return columns
+
 
 def generate_noise(data, type_of_noise, seed = None):
     if seed is not None:

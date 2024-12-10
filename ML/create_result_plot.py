@@ -19,19 +19,12 @@ def get_subject_name(result_file):
     return subject_names, subject_name_row
 
 
-# def decide_index(parts):
-#     preprocessing = next((part for part in parts if part == "DWT" or part == "Envelope"), None)
-#     if preprocessing == "DWT":
-#         index_name = "新処理"
-#     elif preprocessing == "Envelope":
-#         index_name = "旧処理"
-#     return index_name
-
 def create_dataframe_from_results(results):
     df = pd.DataFrame(results).T
     return df
 
-# 値ラベルの追加
+
+# add value labels
 def add_labels(ax):
     for p in ax.patches:
         ax.annotate(format(p.get_height(), ".2f"),
@@ -40,6 +33,7 @@ def add_labels(ax):
                     xytext = (0, 10), textcoords = "offset points",
                     fontproperties=en_font)
 
+
 def result_indexses(num_class, subj):
     index_mapping = {
         2: {"S004": 9, "S018": 1, "S032": 5, "S058": 17, "S079": 13},
@@ -47,6 +41,7 @@ def result_indexses(num_class, subj):
         4: {"S004": 13, "S018": 1, "S032": 7, "S058": 25, "S079": 19}
     }
     return index_mapping.get(num_class, {}).get(subj, None)
+
 
 def process_result_files(file_paths, num_class, results):
     for file_path in file_paths:
@@ -71,8 +66,6 @@ def process_result_files(file_paths, num_class, results):
                         "3class classification(L, R, B)": {"0": None, "50": None, "100": None, "150": None, "200": None, "250": None, "300": None},
                         "4class classification(L, R, B, F)": {"0": None, "50": None, "100": None, "150": None, "200": None, "250": None, "300": None}
                     }
-
-
 
                 num_class_key = ""
                 # Determine classification type based on filename

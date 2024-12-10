@@ -14,6 +14,7 @@ def path_name(type_of_movement):
     else:
         raise ValueError(f"Invalid type_of_movement: {type_of_movement}. Expected 'fist' or 'feet'.")
 
+
 def select_electrode(number_of_ch=64):
     all_ch = ['Fc5', 'Fc3', 'Fc1', 'Fcz', 'Fc2', 'Fc4', 'Fc6', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6','Cp5', 'Cp3', 'Cp1',
             'Cpz', 'Cp2', 'Cp4', 'Cp6', 'Fp1', 'Fpz', 'Fp2', 'Af7', 'Af3', 'Afz', 'Af4','Af8', 'F7', 'F5', 'F3', 'F1','Fz',
@@ -24,6 +25,7 @@ def select_electrode(number_of_ch=64):
     for i in ch_idx:
         extracted_ch.append(all_ch[i])
     return ch_idx, extracted_ch
+
 
 def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=int):
     data_list = []
@@ -56,6 +58,7 @@ def distribute_labels(ch_idx, all_epoch_data, all_labels, n_class, number_of_ch=
 
     return combined_data, combined_labels
 
+
 def dwt(sig, level, t, ch_name, wavelet, plot = bool):
     # coeffs = pywt.wavedec(sig, wavelet, level=level, mode="periodic")
     coeffs = pywt.wavedec(sig, wavelet, level=level)
@@ -85,6 +88,7 @@ def dwt(sig, level, t, ch_name, wavelet, plot = bool):
         pass
     return coeffs
 
+
 def Preprocessing(preprocessing_type):
     if preprocessing_type == "d":
         preprocessing_dir = "DWT_data"
@@ -94,11 +98,13 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF_data"
     return preprocessing_dir
 
+
 def define_cD_index(extract_cD):
     cD_dict = {"D5": 1, "D4": 2, "D3": 3, "D2": 4, "D1": 5}
     cD_index = [cD_dict[cD] for cD in extract_cD]
     concatenated_string = "-".join(extract_cD)
     return cD_index, concatenated_string
+
 
 def execute_dwt(epoch_data, decompose_level):
     details_per_epoch = []
@@ -117,6 +123,7 @@ def execute_dwt(epoch_data, decompose_level):
     all_details.append(details_per_epoch) # Creates elements for the number of batches
     return all_details, concatenated_string
 
+
 def execute_envelope(epoch_data, ds, samplerate=160):
     all_envelope = []
     filterd_data = filter(epoch_data, ds, samplerate) # BPF
@@ -124,13 +131,15 @@ def execute_envelope(epoch_data, ds, samplerate=160):
     all_envelope.append(envelope_data)
     return all_envelope
 
+
 def execute_bpf(epoch_data, ds):
     all_filtered_data = []
     filtered_data = filter(epoch_data, ds, samplerate) # BPF
     all_filtered_data.append(filtered_data)  # Add band-pass filtered data to the list
     return all_filtered_data
 
-# //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 samplerate = 160 # Sampling frequency
 task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]

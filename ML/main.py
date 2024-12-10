@@ -28,10 +28,11 @@ def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     tf.random.set_seed(seed)
-    # CPUスレッド数を制御
+    # control CPU thread number
     os.environ['OMP_NUM_THREADS'] = '1'
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
+
 
 def Preprocessing(preprocessing_type):
     if preprocessing_type == "d":
@@ -42,11 +43,13 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF_data"
     return preprocessing_dir
 
+
 def define_cD_index(extract_cD):
     cD_dict = {"D5": 1, "D4": 2, "D3": 3, "D2": 4, "D1": 5}
     cD_index = [cD_dict[cD] for cD in extract_cD]
     concatenated_string = "-".join(extract_cD)
     return cD_index, concatenated_string
+
 
 def model_plot(model, model_image_filename):
     plot_model(model, to_file=model_image_filename, show_shapes=True, show_layer_names=True)
@@ -55,6 +58,7 @@ def model_plot(model, model_image_filename):
     plt.axis("off")
     plt.imshow(np.array(im))
     # plt.show()
+
 
 def generate_artificial_eeg(data, labels, task_labels, num_trials, num_artificial):
     # initialize list to store artificial eeg
@@ -110,6 +114,7 @@ def generate_artificial_eeg(data, labels, task_labels, num_trials, num_artificia
     artificial_eegs = np.concatenate(artificial_eegs, axis=0)
 
     return artificial_eegs, np.array(artificial_labels)
+
 
 # setting environment variables
 os.environ['TF_DETERMINISTIC_OPS'] = '1'

@@ -23,6 +23,7 @@ def filter(data, ds, sample_rate, order=6):
         filtered_data = filtfilt(b, a, data, axis=0)
     return filtered_data
 
+
 def extract_envelope(data,samplerate,low,order=2):
     envelope_data = np.abs(hilbert(data, axis=1))
     nyquist = 0.5 * samplerate
@@ -32,12 +33,14 @@ def extract_envelope(data,samplerate,low,order=2):
         envelope_data[ch_idx] = filtfilt(b, a, envelope_data[ch_idx], axis=0)
     return envelope_data
 
+
 # バターワースフィルタでのアンチエイリアシングフィルタの設定
 def butter_lowpass(cutoff, fs, order=5):
     nyquist = 0.5 * fs
     normal_cutoff = cutoff / nyquist
     b, a = butter(order, normal_cutoff, btype='low', analog=False)
     return b, a
+
 
 # アンチエイリアシングフィルタを適用する関数
 def apply_antialiasing_filter(data, cutoff, fs, order=5):

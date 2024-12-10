@@ -91,12 +91,14 @@ def one_dim_CNN_model(input_shape, n_class, optimizer='adam', learning_rate=0.00
     # model.summary()
     return model
 
+
 def create_model_builder(input_shape, n_class):
     def model_builder(input_shape, n_class, conv1_filters=64, kernel1_size=20, stride1=2, stride2=1, conv2_filters=32, kernel2_size=15, conv3_filters=64,
                     kernel3_size=10, conv4_filters=32, kernel4_size=20, dense1_nodes=26, dense2_nodes=13, dropout_rate=0.2, optimizer='adam', learning_rate=0.001):
         return one_dim_CNN_model(input_shape, n_class, conv1_filters, kernel1_size, stride1, stride2, conv2_filters, kernel2_size, conv3_filters,
                     kernel3_size, conv4_filters, kernel4_size, dense1_nodes, dense2_nodes, dropout_rate, optimizer, learning_rate)
     return model_builder
+
 
 def Bayesian_Opt(X, y, n_class, n_iter=150, cv=5):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -145,7 +147,8 @@ def Bayesian_Opt(X, y, n_class, n_iter=150, cv=5):
     print(f"Test loss: {evaluation[0]}, Test accuracy: {evaluation[1]}")
     return best_params, evaluation
 
-#PythonからLINEへ通知を送る関数
+
+#PythonからLINEへ通知を送る関数(サービス終了)
 def line_notify(message):
     line_notify_token = 'pzvwGSaMkHyipTsMij8xIYnNmRVDuoufvkHJbOzVvHx'
     line_notify_api = 'https://notify-api.line.me/api/notify'

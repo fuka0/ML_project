@@ -16,6 +16,7 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF"
     return preprocessing_dir
 
+
 def define_cD_index(extract_cD):
     cD_dict = {"D5": 1, "D4": 2, "D3": 3, "D2": 4, "D1": 5}
     cD_index = [cD_dict[cD] for cD in extract_cD]
