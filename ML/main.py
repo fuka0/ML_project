@@ -120,8 +120,7 @@ def generate_artificial_eeg(data, labels, task_labels, num_trials, num_artificia
 os.environ['TF_DETERMINISTIC_OPS'] = '1'
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # for using GPU
 set_seed(93)
-# ////////////////////////////////////////////////////////////////////////////////////////
-print("test")
+
 # left: 4662, right: 4608, fists: 4612, feet: 4643
 task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
