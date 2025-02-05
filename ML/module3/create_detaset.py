@@ -98,12 +98,12 @@ def load_data(data_paths, movement_types, ch_idx, n_class, number_of_ch=int):
                     else:
                         pass
     # データを結合
-        min_length = min([data.shape[1] for data in data_list])
-        trimmed_data_list = [data[:, :min_length, :] for data in data_list]
-        trimmed_label_list = [label[:min_length] for label in label_list]
+        min_time_length = min([arr.shape[1] for arr in data_list])
+        trimmed_data_list = [arr[:, :min_time_length, :] for arr in data_list]
+        trimmed_label_list = label_list
 
-        combined_data = np.concatenate(trimmed_data_list, axis=0)
-        combined_labels = np.concatenate(trimmed_label_list, axis=0)
+        combined_data = np.concatenate(trimmed_data_list, axis=0)   # shape = (合計試行数, min_time_length, チャンネル)
+        combined_labels = np.concatenate(trimmed_label_list, axis=0) # shape = (合計試行数, )
     return combined_data, combined_labels, subject_ids
 
 

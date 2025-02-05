@@ -28,11 +28,10 @@ def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     tf.random.set_seed(seed)
-    # control CPU thread number
+    # CPUスレッド数を制御
     os.environ['OMP_NUM_THREADS'] = '1'
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
-
 
 def Preprocessing(preprocessing_type):
     if preprocessing_type == "d":
@@ -43,13 +42,11 @@ def Preprocessing(preprocessing_type):
         preprocessing_dir = "BPF_data"
     return preprocessing_dir
 
-
 def define_cD_index(extract_cD):
     cD_dict = {"D5": 1, "D4": 2, "D3": 3, "D2": 4, "D1": 5}
     cD_index = [cD_dict[cD] for cD in extract_cD]
     concatenated_string = "-".join(extract_cD)
     return cD_index, concatenated_string
-
 
 def model_plot(model, model_image_filename):
     plot_model(model, to_file=model_image_filename, show_shapes=True, show_layer_names=True)
@@ -58,7 +55,6 @@ def model_plot(model, model_image_filename):
     plt.axis("off")
     plt.imshow(np.array(im))
     # plt.show()
-
 
 def generate_artificial_eeg(data, labels, task_labels, num_trials, num_artificial):
     # initialize list to store artificial eeg
@@ -115,12 +111,11 @@ def generate_artificial_eeg(data, labels, task_labels, num_trials, num_artificia
 
     return artificial_eegs, np.array(artificial_labels)
 
-
 # setting environment variables
 os.environ['TF_DETERMINISTIC_OPS'] = '1'
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # for using GPU
 set_seed(93)
-
+# ////////////////////////////////////////////////////////////////////////////////////////
 # left: 4662, right: 4608, fists: 4612, feet: 4643
 task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 task_name_list = ["actual_imagine", "actual", "imagine"]
@@ -145,7 +140,7 @@ reduce_data = False # data reduction(True or False)
 num_samples = 90  # Number of samples to use when reducing data(default=90)
 
 # paramete for artificial eeg
-execute_artificial_eeg = 0 # if generate artificial eeg, set 1
+execute_artificial_eeg = 1 # if generate artificial eeg, set 1
 num_trials = 5  # number of trials to combine
 num_artificials = [50, 100, 150, 200, 250, 300]  # numebr of artificial eeg to generate(by each task)
 
@@ -311,7 +306,6 @@ for num_artificial in num_artificials:
 
                         end_time = time.time() # end time
                         execute_times.append(end_time - start_time)
-
                         y_pred = general_model.predict(X_test_sstl)
 
                         y_pred_classes = np.argmax(y_pred, axis=1)
@@ -332,7 +326,6 @@ for num_artificial in num_artificials:
 
                 excute_average_time = round(np.mean(execute_times), 2)
                 time_df.loc[target_subject] = excute_average_time
-
                 average_conf_matrices = {}
                 # Calculate average confusion matrix(Transfer Learning part)
                 for fold, matrices in conf_matrices_dict.items():

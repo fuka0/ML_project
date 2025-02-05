@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 import time
 
-task_type = 1 # actual_imagine = 0, actual = 1, imagine = 2
+task_type = 0 # actual_imagine = 0, actual = 1, imagine = 2
 
 name_list = ["actual_imagine", "actual", "imagine"]
 if task_type == 0:
